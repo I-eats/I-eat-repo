@@ -4,18 +4,21 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-nativ
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Checkbox } from 'expo-checkbox';
 import { accessTheDangWebsite } from "../util/authentication";
+import ConfirmEmail from "./ConfirmEmail";
 
 
 export default function Onboard({
-  setAuth
+  setAuth,
 }) {
   const insets = useSafeAreaInsets();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [confirmationNecessary, setConfirmationNecessary] = useState(false);
+
+  const [email, setEmail] = useState('sum23003');
+  const [password, setPassword] = useState('Abc123');
   const [disabled, setDisabled] = useState(false);
 
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(true);
   const [newsletter, setNewsletter] = useState(false);
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export default function Onboard({
 
   const handleSignIn = async () => {
     if (disabled) return;
+    setDisabled(true);
 
     const { data, error } = await accessTheDangWebsite({
       email: `${email}@byui.edu`,
@@ -37,65 +41,80 @@ export default function Onboard({
     })
 
     if (error) {
-      console.log("error during authentication: ", error);
-      return;
+      console.log("error during authentication: ", JSON.stringify(error));
+      if (error.code === 'email_not_confirmed') {
+        console.log('time to confirm email!');
+        setConfirmationNecessary(true);
+      }
+    } else {
+      setAuth(data);
     }
 
-    setAuth(data);
+    setDisabled(false);
   }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.mainContent}>
-        <Text style={styles.title}>i eat</Text>
-        {/* <Text style={styles.subtitle}>The Hogwarts of Student Eating! Get free food for doing well in your classes</Text> */}
-      </View>
-      <View style={[styles.bottomContent, { paddingBottom: insets.bottom+80 }]}>
-        {/* <Text style={styles.bottomTitle}>access your school account</Text> */}
-        <View style={styles.emailPortion}>
-          <TextInput
-            placeholder="sum23003"
-            value={email}
-            onChangeText={setEmail}
-            style={styles.emailInput}
-          />
-          <Text style={styles.emailEndPortion}>@harvard.edu</Text>
-        </View>
-        <TextInput
-          placeholder="password"
-            value={password}
-            onChangeText={setPassword}
-          style={styles.input}
+      {confirmationNecessary ? (
+        <ConfirmEmail
+          setAuth={setAuth}
+          email={email}
+          password={password}
         />
-        <View style={styles.termsWrapper}>
-          <View style={styles.termsContainer}>
-            <View style={styles.term}>
-              <Checkbox 
-                style={styles.termCheckbox} 
-                value={termsAccepted}
-                onValueChange={setTermsAccepted}
-              />
-              <Text style={styles.termText}>By creating an account, you agree to our <Text style={styles.termLink}>Terms of Service</Text></Text>
-            </View>
-            <View style={styles.term}>
-              <Checkbox 
-                style={styles.termCheckbox} 
-                value={newsletter}
-                onValueChange={setNewsletter}
-              />
-              <Text style={styles.termText}>I would like to recieve marketing emails and other dumb stuff lol</Text>
-            </View>
+      ) : (
+        <>
+          <View style={styles.mainContent}>
+            <Text style={styles.title}>i eat</Text>
+            {/* <Text style={styles.subtitle}>The Hogwarts of Student Eating! Get free food for doing well in your classes</Text> */}
           </View>
-        </View>
+          <View style={[styles.bottomContent, { paddingBottom: insets.bottom+80 }]}>
+            {/* <Text style={styles.bottomTitle}>access your school account</Text> */}
+            <View style={styles.emailPortion}>
+              <TextInput
+                placeholder="sum23003"
+                value={email}
+                onChangeText={setEmail}
+                style={styles.emailInput}
+              />
+              <Text style={styles.emailEndPortion}>@byui.edu</Text>
+            </View>
+            <TextInput
+              placeholder="password"
+              value={password}
+              onChangeText={setPassword}
+              style={styles.input}
+            />
+            <View style={styles.termsWrapper}>
+              <View style={styles.termsContainer}>
+                <View style={styles.term}>
+                  <Checkbox 
+                    style={styles.termCheckbox} 
+                    value={termsAccepted}
+                    onValueChange={setTermsAccepted}
+                  />
+                  <Text style={styles.termText}>By creating an account, you agree to our <Text style={styles.termLink}>Terms of Service</Text></Text>
+                </View>
+                <View style={styles.term}>
+                  <Checkbox
+                    style={styles.termCheckbox} 
+                    value={newsletter}
+                    onValueChange={setNewsletter}
+                  />
+                  <Text style={styles.termText}>I would like to recieve marketing emails and other dumb stuff lol</Text>
+                </View>
+              </View>
+            </View>
 
-        <TouchableOpacity
-          style={styles.signInButton}
-          activeOpacity={0.8}
-          onPress={handleSignIn}
-        >
-          <Text style={styles.buttonText}>create</Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity
+              style={[styles.signInButton, disabled && { opacity: 0.5 }]}
+              activeOpacity={0.8}
+              onPress={handleSignIn}
+            >
+              <Text style={styles.buttonText}>create</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   )
 }
