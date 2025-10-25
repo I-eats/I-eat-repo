@@ -136,16 +136,6 @@ function App() {
     }
   }
 
-  const handleSignOut = () => {
-    supabase.auth.signOut()
-    setIsAuthenticated(false)
-    setEmail('')
-    setPassword('')
-    setTermsAccepted(false)
-    setNewsletter(false)
-    setError('')
-  }
-
   if (isAuthenticated) {
     return <AuthGuard />
   }

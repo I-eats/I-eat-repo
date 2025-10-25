@@ -1,5 +1,5 @@
 // components/examples/SupabaseExample.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../services/api'
 import dashboardService from '../../services/dashboard'
 
@@ -35,8 +35,20 @@ const SupabaseExample = () => {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Example 4: Complex query with joins
+  const loadClasses = useCallback(async () => {
+    if (!user) return
+
+    const { data, error } = await dashboardService.getTeacherClasses(user.id)
+    if (error) {
+      console.error('Error loading classes:', error)
+    } else {
+      setClasses(data || [])
+    }
+  }, [user])
+
   // Example 3: Database operations with proper error handling
-  const createClass = async () => {
+  const createClass = useCallback(async () => {
     if (!user) return
 
     const classData = {
@@ -55,22 +67,10 @@ const SupabaseExample = () => {
       // Refresh classes list
       loadClasses()
     }
-  }
-
-  // Example 4: Complex query with joins
-  const loadClasses = async () => {
-    if (!user) return
-
-    const { data, error } = await dashboardService.getTeacherClasses(user.id)
-    if (error) {
-      console.error('Error loading classes:', error)
-    } else {
-      setClasses(data || [])
-    }
-  }
+  }, [user, loadClasses])
 
   // Example 5: Real-time subscription
-  const subscribeToClassChanges = (classId) => {
+  const subscribeToClassChanges = useCallback((classId) => {
     const subscription = dashboardService.subscribeToClassChanges(classId, (payload) => {
       console.log('Class changed:', payload)
       // Update local state based on the change
@@ -84,42 +84,20 @@ const SupabaseExample = () => {
     })
 
     return subscription
-  }
+  }, [])
 
   // Example 6: Search functionality
-  const searchStudents = async (classId, searchTerm) => {
+  const searchStudents = useCallback(async (classId, searchTerm) => {
     const { data, error } = await dashboardService.searchStudents(classId, searchTerm)
     if (error) {
       console.error('Error searching students:', error)
     } else {
       setStudents(data || [])
     }
-  }
-
-  // Example 7: Point transaction with proper validation
-  const givePoints = async (studentId, amount, type, description) => {
-    if (!user) return
-
-    const transactionData = {
-      student_id: studentId,
-      teacher_id: user.id,
-      amount: amount,
-      type: type,
-      description: description
-    }
-
-    const { data, error } = await dashboardService.createPointTransaction(transactionData)
-    if (error) {
-      console.error('Error giving points:', error)
-    } else {
-      console.log('Points given:', data)
-      // Update student points balance
-      await updateStudentPoints(studentId, amount)
-    }
-  }
+  }, [])
 
   // Example 8: Update student points
-  const updateStudentPoints = async (studentId, pointsToAdd) => {
+  const updateStudentPoints = useCallback(async (studentId, pointsToAdd) => {
     // First get current points
     const { data: currentData, error: getError } = await dashboardService.getStudentPointBalance(studentId)
     if (getError) {
@@ -135,10 +113,32 @@ const SupabaseExample = () => {
     } else {
       console.log('Points updated:', data)
     }
-  }
+  }, [])
+
+  // Example 7: Point transaction with proper validation
+  const givePoints = useCallback(async (studentId, amount, type, description) => {
+    if (!user) return
+
+    const transactionData = {
+      student_id: studentId,
+      teacher_id: user.id,
+      amount,
+      type,
+      description
+    }
+
+    const { data, error } = await dashboardService.createPointTransaction(transactionData)
+    if (error) {
+      console.error('Error giving points:', error)
+    } else {
+      console.log('Points given:', data)
+      // Update student points balance
+      await updateStudentPoints(studentId, amount)
+    }
+  }, [updateStudentPoints, user])
 
   // Example 9: Batch operations
-  const batchUpdateStudents = async (updates) => {
+  const batchUpdateStudents = useCallback(async (updates) => {
     const promises = updates.map(update => 
       supabase
         .from('students')
@@ -154,10 +154,10 @@ const SupabaseExample = () => {
     } else {
       console.log('All updates successful')
     }
-  }
+  }, [])
 
   // Example 10: Using filters and modifiers
-  const getRecentTransactions = async (studentId, limit = 10) => {
+  const getRecentTransactions = useCallback(async (studentId, limit = 10) => {
     const { data, error } = await supabase
       .from('point_transactions')
       .select('*')
@@ -170,7 +170,37 @@ const SupabaseExample = () => {
     } else {
       console.log('Recent transactions:', data)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.supabaseExampleApi = {
+        createClass,
+        loadClasses,
+        subscribeToClassChanges,
+        searchStudents,
+        givePoints,
+        updateStudentPoints,
+        batchUpdateStudents,
+        getRecentTransactions
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete window.supabaseExampleApi
+      }
+    }
+  }, [
+    createClass,
+    loadClasses,
+    subscribeToClassChanges,
+    searchStudents,
+    givePoints,
+    updateStudentPoints,
+    batchUpdateStudents,
+    getRecentTransactions
+  ])
 
   if (loading) {
     return <div>Loading...</div>
@@ -206,6 +236,18 @@ const SupabaseExample = () => {
             <p>Description: {cls.description}</p>
           </div>
         ))}
+      </div>
+
+      <div>
+        <h3>Students ({students.length})</h3>
+        <p>Use the exposed helpers on <code>window.supabaseExampleApi</code> to populate students.</p>
+        <ul>
+          {students.map(student => (
+            <li key={student.id}>
+              {student.user?.email ?? student.student_id} — {student.points_balance} pts
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div>

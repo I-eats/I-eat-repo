@@ -1,8 +1,15 @@
 //import {Auth} from '@supabase/auth-ui-react'
-import { createClient, auth } from '@supabase/supabase-js'
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_KEY)
+import { createClient } from '@supabase/supabase-js'
+
+const resolveEnv = (key) => {
+  if (typeof globalThis === 'undefined') return ''
+  const env = globalThis.process?.env ?? {}
+  return env[key] ?? ''
+}
+
+const supabaseUrl = resolveEnv('SUPABASE_URL')
+const supabaseKey = resolveEnv('SUPABASE_KEY')
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 
 document.querySelector("#submit-button").addEventListener("click", sendToSupabase);
@@ -14,10 +21,15 @@ async function sendToSupabase() {
     console.log("Password:", password);
     // make call to Supabase here
     
-    let { data, error } = await supabase.auth.signUp({
-    email: email,
-    password: password
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password
     })
-
-    
+  
+    if (error) {
+      console.error('Supabase sign-up error:', error)
+      return
     }
+  
+    console.log('Supabase sign-up success:', data)
+}

@@ -103,6 +103,16 @@ const StudentDashboard = () => {
     }
   }, [refreshClassmates, refreshTransactions])
 
+  const handleSignOut = useCallback(async () => {
+    try {
+      await supabase.auth.signOut()
+      window.location.reload()
+    } catch (signOutError) {
+      console.error('Error signing out:', signOutError)
+      alert('Failed to sign out. Please try again.')
+    }
+  }, [])
+
   useEffect(() => {
     let isMounted = true
     const initialise = async () => {
@@ -239,7 +249,7 @@ const StudentDashboard = () => {
         </div>
         <div className="student-actions">
           <button className="settings-button">⚙️</button>
-          <button className="signout-button">Sign Out</button>
+          <button className="signout-button" onClick={handleSignOut}>Sign Out</button>
         </div>
       </div>
       

@@ -4,6 +4,10 @@
 # Claude Code Local Settings (contains API keys and personal configs)
 .claude/settings.local.json
 
+# Spec Kit / Codex agent artifacts
+.codex/
+.specify/
+
 # Environment variables (may contain secrets)
 .env
 .env.local

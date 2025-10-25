@@ -1,17 +1,25 @@
 // hooks/useRealtime.js
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/api'
 
 export const useRealtime = (table, filter = {}) => {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const filterEntries = useMemo(
+    () => Object.entries(filter ?? {}),
+    [filter]
+  )
+  const channelFilter = useMemo(
+    () => filterEntries.map(([key, value]) => `${key}=eq.${value}`).join(','),
+    [filterEntries]
+  )
 
   useEffect(() => {
     // Initial fetch
     const fetchData = async () => {
       let query = supabase.from(table).select('*')
       
-      Object.entries(filter).forEach(([key, value]) => {
+      filterEntries.forEach(([key, value]) => {
         query = query.eq(key, value)
       })
 
@@ -30,8 +38,8 @@ export const useRealtime = (table, filter = {}) => {
         { 
           event: '*', 
           schema: 'public', 
-          table: table,
-          filter: Object.entries(filter).map(([key, value]) => `${key}=eq.${value}`).join(',')
+          table,
+          filter: channelFilter || undefined
         }, 
         (payload) => {
           setData(prevData => {
@@ -55,7 +63,7 @@ export const useRealtime = (table, filter = {}) => {
     return () => {
       subscription.unsubscribe()
     }
-  }, [table, JSON.stringify(filter)])
+  }, [table, filterEntries, channelFilter])
 
   return { data, loading }
 }
