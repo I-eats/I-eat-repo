@@ -1,4 +1,4 @@
-
+//import {Auth} from '@supabase/auth-ui-react'
 import { createClient, auth } from '@supabase/supabase-js'
 const supabase = createClient(
     process.env.SUPABASE_URL,
