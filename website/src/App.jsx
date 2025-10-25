@@ -36,56 +36,45 @@ function App() {
     try {
       const fullEmail = `${email}@byui.edu`
       
-      // First check if account exists
-      const { data: existingUser, error: checkError } = await supabase
-        .from('user')
-        .select()
-        .eq('email', fullEmail)
-
-      if (checkError) {
-        console.log("error checking for existing account: ", checkError)
-        setError('Error checking account. Please try again.')
+      // Try to sign in first
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ 
+        email: fullEmail, 
+        password: password 
+      })
+      
+      if (signInData && !signInError) {
+        // Sign in successful
+        setIsAuthenticated(signInData)
         return
       }
 
-      if (existingUser && existingUser?.length > 0) {
-        // Account exists, try to sign in
-        const { data, error } = await supabase.auth.signInWithPassword({ 
-          email: fullEmail, 
-          password: password 
-        })
-        
-        if (error) {
-          setError('Invalid email or password')
-          return
-        }
-        
-        setIsAuthenticated(data)
-      } else {
-        // Account doesn't exist, create it
-        const { error: signUpError } = await supabase.auth.signUp({ 
-          email: fullEmail, 
-          password: password 
-        })
+      // If sign in failed, try to create account
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ 
+        email: fullEmail, 
+        password: password 
+      })
 
-        if (signUpError) {
-          console.log("error creating account: ", signUpError)
-          setError('Error creating account. Please try again.')
-          return
-        }
+      if (signUpError) {
+        console.log("error creating account: ", signUpError)
+        setError('Error creating account. Please try again.')
+        return
+      }
 
-        // Sign in after creating account
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({ 
+      if (signUpData.user) {
+        // Account created successfully, sign in
+        const { data: finalSignInData, error: finalSignInError } = await supabase.auth.signInWithPassword({ 
           email: fullEmail, 
           password: password 
         })
         
-        if (signInError) {
+        if (finalSignInError) {
           setError('Account created but sign in failed. Please try again.')
           return
         }
         
-        setIsAuthenticated(data)
+        setIsAuthenticated(finalSignInData)
+      } else {
+        setError('Account creation failed. Please try again.')
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
