@@ -39,10 +39,28 @@ Create `.claude/settings.json` in your project root:
 ```json
 {
   "permissions": {
-    "disableBypassPermissionsMode": false
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:*)",
+      "Read(/**)",
+      "Edit(**)",
+      "Write(**)",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(sudo rm -rf :*)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)"
+    ]
   }
 }
 ```
+
+**⚠️ IMPORTANT NOTE**: The `disableBypassPermissionsMode` field does NOT work as documented. The schema only accepts `"disable"` as a value, not `false`. The correct way to enable bypass permissions mode is using `defaultMode: "bypassPermissions"` as shown above.
 
 #### Step 3: Add to Version Control (Optional)
 
@@ -57,11 +75,16 @@ git commit -m "Enable Claude Code bypass permissions for development"
 
 #### Configuration Values
 
-| Value | Behavior |
-|-------|----------|
-| `false` | Allows bypass mode to be enabled (permits autonomous operation) |
-| `"disable"` | Prevents bypass mode from being activated (enforces permissions) |
-| Not set | Defaults to allowing bypass mode |
+| Field | Value | Behavior |
+|-------|-------|----------|
+| `defaultMode` | `"bypassPermissions"` | **RECOMMENDED**: Enables bypass mode and shows Shift+Tab toggle |
+| `defaultMode` | `"default"` | Normal permissions mode (prompts for approval) |
+| `defaultMode` | `"acceptEdits"` | Auto-accept edit operations only |
+| `defaultMode` | `"plan"` | Start in planning mode |
+| `disableBypassPermissionsMode` | `"disable"` | Prevents bypass mode from being activated |
+| `disableBypassPermissionsMode` | Not set | Allows bypass mode but doesn't auto-enable it |
+
+**Note**: Despite old documentation suggesting `disableBypassPermissionsMode: false`, this is **invalid**. Use `defaultMode: "bypassPermissions"` instead.
 
 ### Method 2: Command-Line Flag
 
@@ -183,7 +206,7 @@ Result: Bypass mode DISABLED (local settings win)
 
 ## Implementation Examples
 
-### Example 1: Personal Side Project
+### Example 1: Personal Side Project (CORRECTED)
 
 **Scenario**: Full control, rapid development, no sensitive data
 
@@ -191,19 +214,41 @@ Result: Bypass mode DISABLED (local settings win)
 // .claude/settings.json (committed to git)
 {
   "permissions": {
-    "disableBypassPermissionsMode": false
-  },
-  "description": "Personal project - bypass enabled for rapid development"
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:*)",
+      "Read(/**)",
+      "Edit(**)",
+      "Write(**)",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(sudo rm -rf :*)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)"
+    ]
+  }
 }
 ```
 
 **Workflow:**
 ```bash
-# Start Claude Code normally - bypass mode is available
+# Start Claude Code normally - bypass mode is enabled
 claude
 
-# No permission prompts for any operations
-# AI can autonomously read, write, execute commands
+# You'll see the Shift+Tab toggle indicator showing bypass mode is active
+# AI can autonomously perform allowed operations without prompts
+# Dangerous operations (in deny list) are still blocked
 ```
 
 ### Example 2: Shared Repository with Local Override
@@ -382,17 +427,62 @@ If your organization deploys managed policies, bypass mode may be disabled regar
 
 ## Troubleshooting
 
+### Shift+Tab Toggle Not Appearing
+
+**Symptom**: Cannot see the bypass permissions mode toggle indicator in the UI
+
+**Root Cause**: The Shift+Tab toggle only appears when `defaultMode: "bypassPermissions"` is set.
+
+**Solution:**
+1. ✅ Add `"defaultMode": "bypassPermissions"` to your settings file
+2. ✅ Include comprehensive `allow` rules (see working example below)
+3. ✅ Restart Claude Code
+
+**Working Configuration:**
+```json
+{
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Read(/**)",
+      "Edit(**)",
+      "Write(**)",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(sudo rm -rf :*)",
+      "Bash(git push --force origin main)"
+    ]
+  }
+}
+```
+
+**What DOESN'T Work:**
+```json
+{
+  "permissions": {
+    "disableBypassPermissionsMode": false  // ❌ INVALID - does not show toggle
+  }
+}
+```
+
+The `disableBypassPermissionsMode` field only accepts `"disable"` as a value (to prevent bypass mode). Setting it to `false` is invalid according to the schema.
+
 ### Bypass Mode Not Working
 
 **Symptom**: Still seeing permission prompts despite configuration
 
 **Checklist:**
-1. ✅ Verify `disableBypassPermissionsMode` is set to `false` (not `"disable"`)
-2. ✅ Check for enterprise managed policies
-3. ✅ Ensure JSON syntax is valid
-4. ✅ Verify file is in correct location (`.claude/settings.json`)
-5. ✅ Restart Claude Code after changing settings
-6. ✅ Check settings precedence - higher level may override
+1. ✅ Verify you're using `"defaultMode": "bypassPermissions"` (not `disableBypassPermissionsMode: false`)
+2. ✅ Include comprehensive `allow` rules in your configuration
+3. ✅ Check for enterprise managed policies
+4. ✅ Ensure JSON syntax is valid
+5. ✅ Verify file is in correct location (`.claude/settings.json` or `.claude/settings.local.json`)
+6. ✅ Restart Claude Code after changing settings
+7. ✅ Check settings precedence - higher level may override
 
 **Diagnostic:**
 ```bash

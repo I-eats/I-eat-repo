@@ -10,10 +10,11 @@
       ]
     },
     "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
-      "env": {
-        "CONTEXT7_API_KEY": "136116c4-6c35-4ffd-b8fa-cc8f11cb22a4"
+      "mcp_type": "remote",
+      "mcp_url": "https://mcp.context7.com/mcp",
+      "mcp_headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-eed74756-c067-4a71-967b-c8db9164ef20",
+        "CONTEXT7_API_URL": "https://context7.com/api/v1"
       }
     },
     "chrome-devtools": {
@@ -31,6 +32,40 @@
       "args": ["tavily-mcp"],
       "env": {
         "TAVILY_API_KEY": "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"
+      }
+    },
+    "github-search": {
+      "command": "npx",
+      "args": [
+        "github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "replace-with-your-github-token"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "/home/dawson/code/I-eat-repo"
+      ]
+    },
+    "slack": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-slack"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "replace-with-your-slack-bot-token"
+      }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-postgres"
+      ],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "postgresql://user:password@localhost:5432/firebase_config"
       }
     }
   }

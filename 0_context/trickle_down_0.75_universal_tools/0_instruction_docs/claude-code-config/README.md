@@ -8,7 +8,10 @@ This directory contains universal configuration patterns and best practices for 
 ## Available Documentation
 
 ### Permissions & Security
-- **[Bypass Permissions Configuration](./bypass-permissions-setup.md)** - Configure permission bypass modes for trusted development environments
+- **⭐ [What Actually Works](./WHAT_ACTUALLY_WORKS.md)** - **START HERE** - Real-world tested configuration that actually enables bypass mode with Shift+Tab toggle
+- **[Quick Start Guide](./QUICK_START.md)** - Fast 5-minute setup with corrected working configurations
+- **[Bypass Permissions Configuration](./bypass-permissions-setup.md)** - Complete guide for permission bypass modes (updated with corrections)
+- **[Bash Wrapper Setup](./bash-wrapper-setup.md)** - Advanced conditional bypass via shell wrapper functions
 - **[Fine-Grained Permissions](./fine-grained-permissions.md)** - Set up granular permission controls for specific tools and paths
 - **[Enterprise Security Policies](./enterprise-policies.md)** - Manage enterprise-wide security configurations
 
@@ -20,9 +23,14 @@ This directory contains universal configuration patterns and best practices for 
 ## Quick Links
 
 ### Most Common Configurations
-1. **Enable Bypass Permissions** - [See bypass-permissions-setup.md](./bypass-permissions-setup.md)
-2. **Configure Allowed Tools** - [See fine-grained-permissions.md](./fine-grained-permissions.md)
-3. **Set Up MCP Servers** - [See MCP Configuration](../mcp-tools/MCP_CONFIGURATION_GUIDE.md)
+1. **⭐ Enable Bypass Permissions (CORRECTED)** - [See WHAT_ACTUALLY_WORKS.md](./WHAT_ACTUALLY_WORKS.md)
+2. **Quick 5-Minute Setup** - [See QUICK_START.md](./QUICK_START.md)
+3. **Conditional Bypass via Shell Wrapper** - [See bash-wrapper-setup.md](./bash-wrapper-setup.md)
+4. **Configure Allowed Tools** - [See fine-grained-permissions.md](./fine-grained-permissions.md)
+5. **Set Up MCP Servers** - [See MCP Configuration](../mcp-tools/MCP_CONFIGURATION_GUIDE.md)
+
+### ⚠️ Important Note
+Previous documentation incorrectly suggested using `disableBypassPermissionsMode: false`. This **does not work**. The correct approach is `defaultMode: "bypassPermissions"`. See [WHAT_ACTUALLY_WORKS.md](./WHAT_ACTUALLY_WORKS.md) for details.
 
 ## Configuration Philosophy
 
@@ -90,20 +98,25 @@ This directory contains universal configuration patterns and best practices for 
 
 ### 1. Trusted Development Environment
 - **Scenario**: Personal project, full control
-- **Configuration**: Enable bypass permissions
+- **Configuration**: Enable bypass permissions via settings file
 - **See**: [bypass-permissions-setup.md](./bypass-permissions-setup.md)
 
-### 2. Client Project with Sensitive Data
+### 2. Multi-Project Developer
+- **Scenario**: Different security levels per project
+- **Configuration**: Conditional bash wrapper with directory detection
+- **See**: [bash-wrapper-setup.md](./bash-wrapper-setup.md)
+
+### 3. Client Project with Sensitive Data
 - **Scenario**: Third-party codebase, restricted access
 - **Configuration**: Granular deny rules for sensitive paths
 - **See**: [fine-grained-permissions.md](./fine-grained-permissions.md)
 
-### 3. Team Collaboration
+### 4. Team Collaboration
 - **Scenario**: Shared repository, consistent standards
 - **Configuration**: Version-controlled project settings
 - **See**: [project-settings.md](./project-settings.md)
 
-### 4. Enterprise Deployment
+### 5. Enterprise Deployment
 - **Scenario**: Organization-wide security policies
 - **Configuration**: Managed settings with enforcement
 - **See**: [enterprise-policies.md](./enterprise-policies.md)
