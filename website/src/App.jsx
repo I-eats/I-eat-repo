@@ -257,12 +257,13 @@ function AppContent() {
       
       <div className="auth-card">
         <div className="auth-form">
-          <div className="form-group">
+          <div className="email-container">
             <input
               type="text"
               placeholder="sum23003"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="email-input"
             />
             <span className="email-suffix">@byui.edu</span>
           </div>
