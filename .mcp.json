@@ -32,6 +32,40 @@
       "env": {
         "TAVILY_API_KEY": "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"
       }
+    },
+    "github-search": {
+      "command": "npx",
+      "args": [
+        "github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_TOKEN": "replace-with-your-github-token"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "/home/dawson/code/I-eat-repo"
+      ]
+    },
+    "slack": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-slack"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "replace-with-your-slack-bot-token"
+      }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-postgres"
+      ],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "postgresql://user:password@localhost:5432/firebase_config"
+      }
     }
   }
 }
