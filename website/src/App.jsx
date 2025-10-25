@@ -27,6 +27,32 @@ function App() {
     }
   }, [email, password, termsAccepted])
 
+  // Check auth state and listen for changes
+  useEffect(() => {
+    // Check if user is already signed in
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        setIsAuthenticated(session)
+      }
+    }
+    
+    getSession()
+
+    // Listen for auth state changes (e.g., when user confirms email)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session)
+      if (event === 'SIGNED_IN' && session) {
+        setIsAuthenticated(session)
+        setError('') // Clear any error messages
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
   const handleSignIn = async () => {
     if (disabled || isLoading) return
 
@@ -72,15 +98,15 @@ function App() {
       }
 
       if (signUpData.user) {
-        console.log('Account created successfully, signing in...')
+        console.log('Account created successfully')
         
         // Check if email confirmation is required
         if (signUpData.user.email_confirmed_at === null) {
-          setError('Account created! Please check your email to confirm your account, then try signing in again.')
+          setError('Account created! Please check your email and click the confirmation link to activate your account. You can then sign in.')
           return
         }
         
-        // Account created successfully, sign in
+        // If email is already confirmed, sign in immediately
         const { data: finalSignInData, error: finalSignInError } = await supabase.auth.signInWithPassword({ 
           email: fullEmail, 
           password: password 
@@ -89,7 +115,7 @@ function App() {
         if (finalSignInError) {
           console.log('Final sign in error:', finalSignInError)
           if (finalSignInError.message.includes('Email not confirmed')) {
-            setError('Account created! Please check your email to confirm your account, then try signing in again.')
+            setError('Account created! Please check your email and click the confirmation link to activate your account.')
           } else {
             setError('Account created but sign in failed. Please try again.')
           }
