@@ -1,132 +1,214 @@
-/* BYU-Idaho Brand Colors */
+/* Mobile-inspired design with blue theme */
 :root {
-  --brand-blue: #006EB6;
-  --dark-blue: #214491;
-  --medium-blue: #4F9ACF;
-  --light-blue: #A0D4ED;
-  --gray: #949598;
-  --black: #000000;
-  --white: #FFFFFF;
+  --primary-blue: #0ba3ff;
+  --white: #ffffff;
+  --gray: #555555;
+  --light-gray: #cccccc;
+  --error-red: #ff4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .app-container {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  background-color: var(--primary-blue);
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
-  background: linear-gradient(135deg, var(--light-blue) 0%, var(--brand-blue) 100%);
-  padding: 1rem;
-}
-
-.auth-card {
-  background: var(--white);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  padding: 3rem 2.5rem;
+  align-items: center;
+  padding: 30px;
   width: 100%;
-  max-width: 420px;
 }
 
-.auth-title {
-  color: var(--dark-blue);
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
+.title {
+  font-size: 48px;
+  font-weight: bold;
   text-align: center;
-}
-
-.auth-subtitle {
-  color: var(--gray);
-  font-size: 1rem;
-  margin: 0 0 2rem 0;
-  text-align: center;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  text-align: left;
-}
-
-.form-group label {
-  color: var(--dark-blue);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.form-group input {
-  padding: 0.875rem 1rem;
-  border: 2px solid #E0E0E0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: var(--brand-blue);
-  box-shadow: 0 0 0 3px rgba(0, 110, 182, 0.1);
-}
-
-.form-group input::placeholder {
-  color: #AAAAAA;
-}
-
-.submit-btn {
-  background: var(--brand-blue);
   color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 0.5rem;
-}
-
-.submit-btn:hover {
-  background: var(--dark-blue);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 110, 182, 0.3);
-}
-
-.submit-btn:active {
-  transform: translateY(0);
-}
-
-.auth-toggle {
-  margin-top: 1.5rem;
-  text-align: center;
-}
-
-.auth-toggle p {
-  color: var(--gray);
-  font-size: 0.95rem;
   margin: 0;
 }
 
-.toggle-btn {
-  background: none;
-  border: none;
-  color: var(--brand-blue);
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.95rem;
-  padding: 0;
-  text-decoration: underline;
-  transition: color 0.3s ease;
+.bottom-content {
+  background-color: var(--white);
+  border-top-left-radius: 40px;
+  border-top-right-radius: 40px;
+  padding: 80px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
 }
 
-.toggle-btn:hover {
-  color: var(--dark-blue);
+.email-portion {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--light-gray);
+  border-radius: 10000px;
+  padding: 15px 20px;
+  gap: 5px;
+}
+
+.email-input {
+  font-size: 16px;
+  border: none;
+  outline: none;
+  flex: 1;
+  background: transparent;
+}
+
+.email-input::placeholder {
+  color: #999;
+}
+
+.email-end-portion {
+  font-size: 16px;
+  color: var(--gray);
+}
+
+.password-input {
+  border: 1px solid var(--light-gray);
+  border-radius: 10000px;
+  padding: 15px 20px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.password-input:focus {
+  border-color: var(--primary-blue);
+}
+
+.password-input::placeholder {
+  color: #999;
+}
+
+.terms-wrapper {
+  padding: 0 20px;
+}
+
+.terms-container {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.term {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.term-checkbox {
+  margin-top: 3px;
+  accent-color: var(--primary-blue);
+}
+
+.term-text {
+  font-size: 16px;
+  color: var(--gray);
+  flex: 1;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.term-link {
+  text-decoration: underline;
+  color: var(--primary-blue);
+  cursor: pointer;
+}
+
+.error-message {
+  background-color: #ffebee;
+  border: 1px solid var(--error-red);
+  color: #c62828;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.sign-in-button {
+  background-color: var(--primary-blue);
+  color: var(--white);
+  border: none;
+  border-radius: 10000px;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sign-in-button:hover:not(.disabled) {
+  background-color: #0099e6;
+  transform: translateY(-1px);
+}
+
+.sign-in-button.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Dashboard styles */
+.dashboard {
+  background-color: var(--white);
+  border-radius: 20px;
+  padding: 40px;
+  margin: 20px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard h1 {
+  color: var(--primary-blue);
+  margin-bottom: 20px;
+}
+
+.sign-out-btn {
+  background-color: var(--primary-blue);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.sign-out-btn:hover {
+  background-color: #0099e6;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 20px;
+  }
+  
+  .title {
+    font-size: 36px;
+  }
+  
+  .bottom-content {
+    padding: 60px 20px;
+  }
 }
 
 .demo-notice {
@@ -161,11 +243,15 @@
 }
 
 @media (max-width: 480px) {
-  .auth-card {
-    padding: 2rem 1.5rem;
+  .title {
+    font-size: 32px;
   }
-
-  .auth-title {
-    font-size: 1.75rem;
+  
+  .bottom-content {
+    padding: 40px 15px;
+  }
+  
+  .terms-wrapper {
+    padding: 0 10px;
   }
 }

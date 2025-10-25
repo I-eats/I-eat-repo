@@ -1,94 +1,118 @@
-// import { Auth } from '@supabase/auth-ui-react'
-// import { ThemeSupa } from '@supabase/auth-ui-shared'
-// import { createClient } from '@supabase/supabase-js'
-// import './App.css'
-
-// // Vite uses import.meta.env instead of process.env
-// const supabase = createClient(
-//   import.meta.env.VITE_SUPABASE_URL,
-//   import.meta.env.VITE_SUPABASE_ANON_KEY
-// )
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <h1>Supabase Auth Demo</h1>
-//       <Auth
-//         supabaseClient={supabase}
-//         appearance={{ theme: ThemeSupa }}
-//         theme="dark"
-//       />
-//     </div>
-//   )
-// }
-
-// export default App
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import './App.css'
 
+// Create Supabase client
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+)
+
 function App() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [statusMessage, setStatusMessage] = useState('')
-  const [statusType, setStatusType] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [disabled, setDisabled] = useState(true)
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [newsletter, setNewsletter] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setStatusMessage('')
-    setStatusType('')
-
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      setStatusMessage('Passwords do not match.')
-      setStatusType('error')
-      return
+  // Enable/disable button based on form validation
+  useEffect(() => {
+    if (email.length > 0 && password.length > 0 && termsAccepted) {
+      setDisabled(false)
+    } else {
+      setDisabled(true)
     }
+  }, [email, password, termsAccepted])
 
-    setIsSubmitting(true)
+  const handleSignIn = async () => {
+    if (disabled || isLoading) return
 
-    // Simulate API call
-    setTimeout(() => {
-      if (isLogin) {
-        setStatusMessage('Demo: Signed in successfully! (This is a demo - no real authentication)')
-        setStatusType('success')
-        setIsAuthenticated(true)
-      } else {
-        setStatusMessage('Demo: Signup successful! (This is a demo - no real authentication)')
-        setStatusType('success')
-        setIsAuthenticated(true)
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const fullEmail = `${email}@byui.edu`
+      
+      // First check if account exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('user')
+        .select()
+        .eq('email', fullEmail)
+
+      if (checkError) {
+        console.log("error checking for existing account: ", checkError)
+        setError('Error checking account. Please try again.')
+        return
       }
-      setIsSubmitting(false)
-    }, 1000)
+
+      if (existingUser && existingUser?.length > 0) {
+        // Account exists, try to sign in
+        const { data, error } = await supabase.auth.signInWithPassword({ 
+          email: fullEmail, 
+          password: password 
+        })
+        
+        if (error) {
+          setError('Invalid email or password')
+          return
+        }
+        
+        setIsAuthenticated(data)
+      } else {
+        // Account doesn't exist, create it
+        const { error: signUpError } = await supabase.auth.signUp({ 
+          email: fullEmail, 
+          password: password 
+        })
+
+        if (signUpError) {
+          console.log("error creating account: ", signUpError)
+          setError('Error creating account. Please try again.')
+          return
+        }
+
+        // Sign in after creating account
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({ 
+          email: fullEmail, 
+          password: password 
+        })
+        
+        if (signInError) {
+          setError('Account created but sign in failed. Please try again.')
+          return
+        }
+        
+        setIsAuthenticated(data)
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+      console.error('Authentication error:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSignOut = () => {
+    supabase.auth.signOut()
     setIsAuthenticated(false)
-    setFormData({ email: '', password: '', confirmPassword: '' })
-    setStatusMessage('')
-    setStatusType('')
+    setEmail('')
+    setPassword('')
+    setTermsAccepted(false)
+    setNewsletter(false)
+    setError('')
   }
 
   if (isAuthenticated) {
     return (
       <div className="app-container">
-        <div className="auth-card">
-          <h1 className="auth-title">Welcome to I-Eat!</h1>
-          <p className="auth-subtitle">Hello {formData.email}!</p>
-          <p className="demo-notice">🎉 This is a demo version - no real authentication required!</p>
-          <button onClick={handleSignOut} className="submit-btn">
+        <div className="dashboard">
+          <h1>Welcome to I-Eat!</h1>
+          <p>Hello {isAuthenticated.user?.email}!</p>
+          <p>🎉 You're successfully logged in!</p>
+          <button onClick={handleSignOut} className="sign-out-btn">
             Sign Out
           </button>
         </div>
@@ -98,78 +122,72 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="auth-card">
-        <h1 className="auth-title">{isLogin ? 'Welcome Back' : 'Create Account'}</h1>
-        <p className="auth-subtitle">
-          {isLogin ? 'Sign in to continue' : 'Sign up to get started'}
-        </p>
-        <p className="demo-notice">🎉 Demo Mode - No real Supabase connection required!</p>
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your password"
-            />
-          </div>
-
-          {!isLogin && (
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+      <div className="main-content">
+        <h1 className="title">i eat</h1>
+      </div>
+      
+      <div className="bottom-content">
+        <div className="email-portion">
+          <input
+            type="text"
+            placeholder="sum23003"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="email-input"
+          />
+          <span className="email-end-portion">@byui.edu</span>
+        </div>
+        
+        <input
+          type="password"
+          placeholder="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="password-input"
+        />
+        
+        <div className="terms-wrapper">
+          <div className="terms-container">
+            <div className="term">
               <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-                placeholder="Confirm your password"
+                type="checkbox"
+                id="terms"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="term-checkbox"
               />
+              <label htmlFor="terms" className="term-text">
+                By creating an account, you agree to our <span className="term-link">Terms of Service</span>
+              </label>
             </div>
-          )}
+            <div className="term">
+              <input
+                type="checkbox"
+                id="newsletter"
+                checked={newsletter}
+                onChange={(e) => setNewsletter(e.target.checked)}
+                className="term-checkbox"
+              />
+              <label htmlFor="newsletter" className="term-text">
+                I would like to receive marketing emails and other updates
+              </label>
+            </div>
+          </div>
+        </div>
 
-          <button type="submit" className="submit-btn" disabled={isSubmitting}>
-            {isSubmitting ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
-
-        {statusMessage && (
-          <div className={`status-message ${statusType}`}>
-            {statusMessage}
+        {error && (
+          <div className="error-message">
+            {error}
           </div>
         )}
 
-        <div className="auth-toggle">
-          <p>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="toggle-btn"
-              disabled={isSubmitting}
-            >
-              {isLogin ? 'Sign Up' : 'Sign In'}
-            </button>
-          </p>
-        </div>
+        <button
+          className={`sign-in-button ${disabled ? 'disabled' : ''}`}
+          onClick={handleSignIn}
+          disabled={disabled || isLoading}
+        >
+          {isLoading ? 'Creating...' : 'create'}
+        </button>
       </div>
     </div>
   )
