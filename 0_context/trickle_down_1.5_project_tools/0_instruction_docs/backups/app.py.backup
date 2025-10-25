@@ -1,0 +1,492 @@
+#!/usr/bin/env python3
+"""
+Flask Web Application for Phoneme Frequency Tracker
+Implements all terminal functions as web endpoints
+"""
+
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file, session, get_flashed_messages
+from jinja2 import ChoiceLoader, FileSystemLoader
+import sqlite3
+import os
+import json
+import subprocess
+import shutil
+import glob
+from werkzeug.security import generate_password_hash, check_password_hash
+from collections import defaultdict
+from datetime import datetime
+import main  # Import the main terminal application
+from src.tts_ipa import ipa_tts
+# from firebase_service import firebase_service  # OLD - REMOVED
+from services.firebase import clean_firebase_service, firestore_db
+from services.reset import reset_database as reset_database_service
+from src.storage_manager import storage_manager, StorageType
+from features.firebase import get_firebase_client_config
+from features.projects import (
+    fetch_project_metadata,
+    normalize_project_identifier,
+    projects_bp,
+)
+from features.groups import groups_bp
+from features.admin import admin_bp
+from features.words import words_bp
+from features.phonemes import phonemes_bp
+from features.dashboard import dashboard_bp
+from features.auth import auth_bp, get_user_info, require_auth, require_project_admin, is_project_owner
+
+app = Flask(__name__)
+app.secret_key = 'phoneme_tracker_secret_key_2024'
+
+@app.route("/favicon.ico")
+def favicon():
+    """Return empty response to silence missing favicon requests."""
+    return ("", 204)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+feature_template_paths = [
+    os.path.join(BASE_DIR, 'features', 'auth', 'templates'),
+    os.path.join(BASE_DIR, 'features', 'projects', 'templates'),
+    os.path.join(BASE_DIR, 'features', 'admin', 'templates'),
+    os.path.join(BASE_DIR, 'features', 'words', 'templates'),
+    os.path.join(BASE_DIR, 'features', 'phonemes', 'templates'),
+    os.path.join(BASE_DIR, 'features', 'groups', 'templates'),
+    os.path.join(BASE_DIR, 'features', 'dashboard', 'templates'),
+]
+app.jinja_loader = ChoiceLoader([
+    app.jinja_loader,
+    *[FileSystemLoader(path) for path in feature_template_paths],
+])
+for blueprint in (auth_bp, projects_bp, admin_bp, words_bp, phonemes_bp, groups_bp, dashboard_bp):
+    if blueprint.name not in app.blueprints:
+        app.register_blueprint(blueprint)
+
+def init_users_table():
+    """Initialize users table for custom authentication"""
+    conn = sqlite3.connect(main.DB_NAME)
+    cursor = conn.cursor()
+    firebase_available = clean_firebase_service.is_available()
+    firebase_available = clean_firebase_service.is_available()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_active BOOLEAN DEFAULT 1
+        )
+    """)
+
+    # Add projects table for language projects
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE(name, user_id)
+        )
+    """)
+
+    cursor.execute("PRAGMA table_info(projects)")
+    project_columns = [column[1] for column in cursor.fetchall()]
+    if 'cloud_project_id' not in project_columns:
+        cursor.execute("ALTER TABLE projects ADD COLUMN cloud_project_id TEXT")
+    if 'cloud_last_sync' not in project_columns:
+        cursor.execute("ALTER TABLE projects ADD COLUMN cloud_last_sync TIMESTAMP")
+    if 'migrated_to_cloud' not in project_columns:
+        cursor.execute("ALTER TABLE projects ADD COLUMN migrated_to_cloud INTEGER DEFAULT 0")
+    # Add groups table for user groups functionality
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS groups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            admin_user_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (admin_user_id) REFERENCES users (id)
+        )
+    """)
+
+    # Add group membership table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS group_memberships (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER,
+            user_id INTEGER,
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES groups (id),
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE(group_id, user_id)
+        )
+    """)
+
+    # Add group invites table for shareable links
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS group_invites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER,
+            invite_token TEXT UNIQUE NOT NULL,
+            created_by INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (group_id) REFERENCES groups (id),
+            FOREIGN KEY (created_by) REFERENCES users (id)
+        )
+    """)
+
+    # Add firebase_uid column to users table if it doesn't exist
+    cursor.execute("PRAGMA table_info(users)")
+    user_columns = [column[1] for column in cursor.fetchall()]
+    if 'firebase_uid' not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN firebase_uid TEXT")
+        # Create index for uniqueness after adding the column
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_firebase_uid ON users(firebase_uid) WHERE firebase_uid IS NOT NULL")
+    
+    # Add user_id column to words table if it doesn't exist
+    cursor.execute("PRAGMA table_info(words)")
+    columns = [column[1] for column in cursor.fetchall()]
+    if 'user_id' not in columns:
+        cursor.execute("ALTER TABLE words ADD COLUMN user_id INTEGER")
+
+    # Add project_id column to words table if it doesn't exist
+    if 'project_id' not in columns:
+        cursor.execute("ALTER TABLE words ADD COLUMN project_id INTEGER")
+        try:
+            cursor.execute("ALTER TABLE words ADD FOREIGN KEY (project_id) REFERENCES projects (id)")
+        except sqlite3.OperationalError:
+            # SQLite does not support adding foreign keys to existing tables; ignore in that case
+            pass
+
+    # Add project_id column to phonemes table if it doesn't exist
+    cursor.execute("PRAGMA table_info(phonemes)")
+    phoneme_columns = [column[1] for column in cursor.fetchall()]
+    if 'project_id' not in phoneme_columns:
+        cursor.execute("ALTER TABLE phonemes ADD COLUMN project_id INTEGER")
+        cursor.execute("ALTER TABLE phonemes ADD COLUMN user_id INTEGER")
+
+    # Add or upgrade project sharing table to support both local and cloud projects
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='project_shares'")
+    has_project_shares = cursor.fetchone() is not None
+
+    def _create_project_shares_table():
+        cursor.execute("""
+            CREATE TABLE project_shares (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_identifier TEXT NOT NULL,
+                project_id INTEGER,
+                cloud_project_id TEXT,
+                storage_type TEXT NOT NULL,
+                group_id INTEGER NOT NULL,
+                shared_by INTEGER NOT NULL,
+                shared_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (project_id) REFERENCES projects (id),
+                FOREIGN KEY (group_id) REFERENCES groups (id),
+                FOREIGN KEY (shared_by) REFERENCES users (id),
+                UNIQUE(project_identifier, group_id)
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_project_shares_cloud ON project_shares(cloud_project_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_project_shares_identifier ON project_shares(project_identifier)")
+
+    if not has_project_shares:
+        _create_project_shares_table()
+    else:
+        cursor.execute("PRAGMA table_info(project_shares)")
+        project_share_columns = [column[1] for column in cursor.fetchall()]
+        if 'project_identifier' not in project_share_columns:
+            cursor.execute("ALTER TABLE project_shares RENAME TO project_shares_legacy")
+            _create_project_shares_table()
+            cursor.execute("""
+                INSERT INTO project_shares (
+                    project_identifier, project_id, cloud_project_id, storage_type, group_id, shared_by, shared_at
+                )
+                SELECT 'local:' || project_id, project_id, NULL, 'local', group_id, shared_by, shared_at
+                FROM project_shares_legacy
+            """)
+            cursor.execute("DROP TABLE project_shares_legacy")
+
+    # Project group metadata table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS project_groups (
+            group_id TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            parent_group_id TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_project_groups_user ON project_groups(user_id)")
+    cursor.execute("PRAGMA table_info(project_groups)")
+    project_group_columns = [column[1] for column in cursor.fetchall()]
+    if 'parent_group_id' not in project_group_columns:
+        cursor.execute("ALTER TABLE project_groups ADD COLUMN parent_group_id TEXT")
+
+    # Variant metadata table for branching and grouping
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS project_variants_meta (
+            variant_identifier TEXT PRIMARY KEY,
+            group_id TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            storage_type TEXT NOT NULL,
+            parent_variant_identifier TEXT,
+            branch_name TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES project_groups(group_id),
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_variant_meta_group ON project_variants_meta(group_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_variant_meta_user ON project_variants_meta(user_id)")
+
+    conn.commit()
+    conn.close()
+
+# Custom Jinja filter for unique count
+@app.template_filter('unique_count')
+def unique_count_filter(items, attribute):
+    """Get count of unique values for a given attribute"""
+    if not items:
+        return 0
+    unique_values = set()
+    for item in items:
+        if hasattr(item, '__getitem__'):
+            value = item.get(attribute)
+        else:
+            value = getattr(item, attribute, None)
+        if value:
+            unique_values.add(value)
+    return len(unique_values)
+
+# Configuration
+UPLOAD_FOLDER = 'videos'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Database initialization moved to main block to avoid import-time execution
+
+@app.route('/')
+def index():
+    """Main menu - redirects to login for unauthenticated users, shows project dashboard for authenticated users"""
+    # Quick health check for deployment monitoring
+    user_agent = request.headers.get('User-Agent', '')
+    if user_agent.startswith('GoogleHC') or 'health' in request.args:
+        return {'status': 'healthy', 'message': 'Flask app is running'}, 200
+
+    # Get user information
+    user = get_user_info()
+
+    # If not authenticated, redirect to login
+    if not user['is_authenticated']:
+        return redirect(url_for('auth.login'))
+
+    # If authenticated, show projects and groups dashboard
+    return redirect(url_for('dashboard.dashboard'))
+
+
+@app.route('/main-menu')
+@require_auth
+def main_menu():
+    """Main application menu - only accessible when in a project context"""
+    user = get_user_info()
+    firebase_available = clean_firebase_service.is_available()
+
+    # Require a current project to access the main menu
+    current_project = user.get('current_project')
+    if not current_project:
+        flash('Please enter a project to access the main menu', 'error')
+        return redirect(url_for('dashboard.dashboard'))
+
+    # Get word statistics for the current project
+    try:
+        if current_project.get('storage_type') == 'cloud':
+            cloud_words = firestore_db.get_project_words(current_project['id'])
+            total_words = len(cloud_words)
+            total_languages = len({w.get('language') for w in cloud_words if w.get('language')})
+            words_with_videos = sum(1 for w in cloud_words if w.get('video_path'))
+            structured_words = sum(1 for w in cloud_words if w.get('syllable_type'))
+
+            stats = {
+                'total_words': total_words,
+                'total_languages': total_languages,
+                'words_with_videos': words_with_videos,
+                'structured_words': structured_words
+            }
+
+            return render_template('main_menu.html', stats=stats, user=user, firebase_available=firebase_available)
+
+        conn = sqlite3.connect(main.DB_NAME)
+        cursor = conn.cursor()
+        project_id = current_project['id']
+
+        # Show project-specific statistics
+        cursor.execute("SELECT COUNT(*) FROM words WHERE project_id = ?", (project_id,))
+        total_words = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(DISTINCT language) FROM words WHERE language IS NOT NULL AND project_id = ?", (project_id,))
+        total_languages = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM words WHERE video_path IS NOT NULL AND project_id = ?", (project_id,))
+        words_with_videos = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM words WHERE syllable_type IS NOT NULL AND project_id = ?", (project_id,))
+        structured_words = cursor.fetchone()[0]
+
+        conn.close()
+
+        stats = {
+            'total_words': total_words,
+            'total_languages': total_languages,
+            'words_with_videos': words_with_videos,
+            'structured_words': structured_words
+        }
+
+        return render_template('main_menu.html', stats=stats, user=user, firebase_available=firebase_available)
+    except Exception as e:
+        # If there's an error getting stats, just show the page without them
+        return render_template('main_menu.html', stats=None, user=user, firebase_available=firebase_available)
+
+
+@app.route('/api/tts/ipa', methods=['POST'])
+def api_tts_ipa():
+    """Generate audio from IPA text using best available TTS backend"""
+    try:
+        data = request.get_json()
+        ipa_text = data.get('ipa', '').strip()
+        
+        if not ipa_text:
+            return jsonify({'success': False, 'error': 'IPA text is required'}), 400
+        
+        # Generate audio using best available backend (eSpeak-NG preferred, Azure fallback)
+        audio_base64 = ipa_tts.generate_ipa_audio(ipa_text)
+        
+        if audio_base64:
+            backend_code = ipa_tts.last_backend or ("azure" if ipa_tts.azure_available else "fake")
+            backend_label = (
+                "Azure TTS (SSML Phonemes)"
+                if backend_code == "azure"
+                else "Fake TTS (deterministic)"
+            )
+            audio_format = "mp3" if backend_code == "azure" else "wav"
+            return jsonify({
+                'success': True,
+                'audio_data': audio_base64,
+                'ipa_input': ipa_text,
+                'backend': backend_label,
+                'format': audio_format
+            })
+        else:
+            return jsonify({
+                'success': False, 
+                'error': 'Failed to generate audio with available TTS backends'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/tts/phoneme', methods=['POST'])
+def api_tts_phoneme():
+    """Generate audio for individual phoneme using best available TTS backend"""
+    try:
+        data = request.get_json()
+        phoneme = data.get('phoneme', '').strip()
+        position = data.get('position', 'standalone')
+        
+        if not phoneme:
+            return jsonify({'success': False, 'error': 'Phoneme is required'}), 400
+        
+        # Generate audio for phoneme using best available backend
+        audio_base64 = ipa_tts.generate_phoneme_audio(phoneme, position)
+        
+        if audio_base64:
+            backend_code = ipa_tts.last_backend or ("azure" if ipa_tts.azure_available else "fake")
+            backend_label = (
+                "Azure TTS (SSML Phonemes)"
+                if backend_code == "azure"
+                else "Fake TTS (deterministic)"
+            )
+            audio_format = "mp3" if backend_code == "azure" else "wav"
+            return jsonify({
+                'success': True,
+                'audio_data': audio_base64,
+                'phoneme': phoneme,
+                'position': position,
+                'backend': backend_label,
+                'format': audio_format
+            })
+        else:
+            return jsonify({
+                'success': False, 
+                'error': 'Failed to generate phoneme audio with available TTS backends'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/tts/status')
+def api_tts_status():
+    """Check TTS system status and capabilities"""
+    status = ipa_tts.get_status_report()
+    if not status.get('azure_available'):
+        status['installation_notes'] = 'Azure TTS required - set AZURE_SPEECH_KEY environment variable'
+    return jsonify(status)
+
+@app.route('/test-audio')
+def test_audio():
+    """Test page for audio debugging"""
+    return send_file('test_audio.html')
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for deployment monitoring"""
+    return {'status': 'healthy', 'message': 'Phoneme Tracker Flask app is running'}, 200
+
+
+# Firebase Authentication Routes
+
+
+
+@app.route('/videos/<path:filename>')
+def serve_video(filename):
+    """Serve video files"""
+    try:
+        normalized_filename = filename.replace('\\', '/')
+        if normalized_filename.startswith('videos/'):
+            normalized_filename = normalized_filename[7:]
+
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], normalized_filename)
+
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'Video file not found'}), 404
+        return send_file(file_path)
+    except Exception as e:
+        return jsonify({'error': f'Error serving video: {str(e)}'}), 500
+
+if __name__ == '__main__':
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    # Initialize database schema and sample data
+    if not os.path.exists("data/phonemes.db"):
+        print("Initializing database...")
+        main.migrate_schema()
+        main.insert_sample_data()
+        print("Database initialized successfully!")
+
+    # Initialize users table
+    print("Initializing users table...")
+    init_users_table()
+    print("Users table initialized successfully!")
+
+    print("Starting Flask application...")
+    print("URL: http://0.0.0.0:5000")
+
+    # Always use port 5000 in Replit environment
+    port = int(os.environ.get('PORT', 5000))
+    print(f"Starting on port {port}")
+    app.run(debug=True, host='0.0.0.0', port=port, threaded=True)

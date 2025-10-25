@@ -1,0 +1,14 @@
+{
+  "firebase_admin_config": {
+    "projects": {
+      "lang-trak-dev": {
+        "service_account_path": "keys/lang-trak-dev-agent-key.json",
+        "database_url": "https://lang-trak-dev-default-rtdb.firebaseio.com/"
+      },
+      "lang-trak-prod": {
+        "service_account_path": "keys/lang-trak-prod-agent-key.json",
+        "database_url": "https://lang-trak-prod-default-rtdb.firebaseio.com/"
+      }
+    }
+  }
+}

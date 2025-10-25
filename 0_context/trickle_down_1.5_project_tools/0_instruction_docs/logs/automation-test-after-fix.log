@@ -1,0 +1,224 @@
+{
+  "total": 18,
+  "passed": 14,
+  "failed": 4,
+  "results": [
+    {
+      "id": "US-001-005-auth-basics-direct",
+      "status": "passed",
+      "port": 3334,
+      "command": [
+        "node",
+        "scripts/mcp-playwright-demo.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-001-005-auth-basics-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-006-011-groups-direct",
+      "status": "passed",
+      "port": 3335,
+      "command": [
+        "node",
+        "scripts/mcp-user-stories-006-009.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-006-011-groups-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-012-015-projects-direct",
+      "status": "passed",
+      "port": 3336,
+      "command": [
+        "node",
+        "scripts/mcp-projects-flow.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-012-015-projects-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-016-017-024-project-variants-direct",
+      "status": "passed",
+      "port": 3337,
+      "command": [
+        "node",
+        "scripts/mcp-project-variants.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-016-017-024-project-variants-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-018-023-project-share-delete-direct",
+      "status": "passed",
+      "port": 3338,
+      "command": [
+        "node",
+        "scripts/mcp-project-share-delete.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-018-023-project-share-delete-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-025-028-phoneme-views-direct",
+      "status": "passed",
+      "port": 3339,
+      "command": [
+        "node",
+        "scripts/mcp-phonemes-flat.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-025-028-phoneme-views-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-029-037-words-media-direct",
+      "status": "passed",
+      "port": 3340,
+      "command": [
+        "node",
+        "scripts/mcp-words-flow.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-029-037-words-media-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-038-049-phoneme-admin-direct",
+      "status": "failed",
+      "port": 3341,
+      "command": [
+        "node",
+        "scripts/mcp-phoneme-admin.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-038-049-phoneme-admin-direct",
+      "navigation_mode": "direct",
+      "exit_code": 1
+    },
+    {
+      "id": "US-050-053-admin-database-tools-direct",
+      "status": "failed",
+      "port": 3342,
+      "command": [
+        "node",
+        "scripts/mcp-admin-database-tools.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-050-053-admin-database-tools-direct",
+      "navigation_mode": "direct",
+      "exit_code": 1
+    },
+    {
+      "id": "US-054-056-tts-experience-direct",
+      "status": "passed",
+      "port": 3343,
+      "command": [
+        "node",
+        "scripts/mcp-tts-experience.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-054-056-tts-experience-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-057-059-storage-resilience-direct",
+      "status": "passed",
+      "port": 3344,
+      "command": [
+        "node",
+        "scripts/mcp-storage-resilience.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-057-059-storage-resilience-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-064-journey-onboarding-direct",
+      "status": "passed",
+      "port": 3345,
+      "command": [
+        "node",
+        "scripts/mcp-journey-onboarding.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-064-journey-onboarding-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-065-journey-collaboration-direct",
+      "status": "passed",
+      "port": 3346,
+      "command": [
+        "node",
+        "scripts/mcp-journey-collaboration.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-065-journey-collaboration-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-066-journey-branching-direct",
+      "status": "passed",
+      "port": 3347,
+      "command": [
+        "node",
+        "scripts/mcp-journey-branching.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-066-journey-branching-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "US-067-journey-mobile-direct",
+      "status": "passed",
+      "port": 3348,
+      "command": [
+        "node",
+        "scripts/mcp-journey-mobile.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/US-067-journey-mobile-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "CLOUD-001-google-oauth-direct",
+      "status": "passed",
+      "port": 3349,
+      "command": [
+        "node",
+        "scripts/mcp-google-auth.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/CLOUD-001-google-oauth-direct",
+      "navigation_mode": "direct",
+      "exit_code": 0
+    },
+    {
+      "id": "CLOUD-002-cloud-projects-direct",
+      "status": "failed",
+      "port": 3350,
+      "command": [
+        "node",
+        "scripts/mcp-cloud-projects.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/CLOUD-002-cloud-projects-direct",
+      "navigation_mode": "direct",
+      "exit_code": 1
+    },
+    {
+      "id": "CLOUD-003-cloud-migration-direct",
+      "status": "failed",
+      "port": 3351,
+      "command": [
+        "node",
+        "scripts/mcp-cloud-migration.mjs"
+      ],
+      "artifacts": "/home/dawson/code/lang-trak-in-progress/artifacts/story_runs/CLOUD-003-cloud-migration-direct",
+      "navigation_mode": "direct",
+      "exit_code": 1
+    }
+  ],
+  "navigation_mode": "direct"
+}

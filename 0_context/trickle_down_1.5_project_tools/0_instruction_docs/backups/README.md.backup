@@ -1,0 +1,13 @@
+# Language-Tracker-App-MCP
+
+To preview the web interface locally:
+
+```bash
+source .venv/bin/activate  # or use python3 directly if you prefer
+PORT=5002 python app.py
+# PORT=5001 python3 app.py  # fallback when `python` isn’t available
+```
+
+Then open http://localhost:5001 in your browser.
+
+See full documentation in `docs/README.md`.
