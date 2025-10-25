@@ -55,7 +55,7 @@
 /* Blue header section */
 .auth-header {
   background: #0066cc;
-  flex: 1;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
