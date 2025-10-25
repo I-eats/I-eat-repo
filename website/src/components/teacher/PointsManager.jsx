@@ -1,121 +1,87 @@
 // components/teacher/PointsManager.jsx
 import React, { useState } from 'react'
 
-const PointsManager = ({ totalPoints, onPointsUpdate }) => {
-  const [customAmount, setCustomAmount] = useState('')
-  const [selectedStudent, setSelectedStudent] = useState('')
-  const [transactionType, setTransactionType] = useState('credit')
+const PointsManager = ({ totalPoints, onPointsUpdate, selectedStudents }) => {
+  const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
 
-  const quickAmounts = [100, 50, 20]
-
-  const handleQuickGive = (amount) => {
-    if (!selectedStudent) {
-      alert('Please select a student first')
-      return
-    }
-    
-    onPointsUpdate(selectedStudent, amount, transactionType, description || `Quick ${transactionType} of ${amount} points`)
-    setDescription('')
-  }
-
-  const handleCustomGive = () => {
-    const amount = parseInt(customAmount)
-    if (!amount || amount <= 0) {
+  const handleGivePoints = async () => {
+    const pointsAmount = parseInt(amount)
+    if (!pointsAmount || pointsAmount <= 0) {
       alert('Please enter a valid amount')
       return
     }
     
-    if (!selectedStudent) {
-      alert('Please select a student first')
+    if (!selectedStudents || selectedStudents.size === 0) {
+      alert('Please select at least one student first')
       return
     }
     
-    if (amount > totalPoints) {
+    if (pointsAmount > totalPoints) {
       alert('Insufficient points')
       return
     }
     
-    onPointsUpdate(selectedStudent, amount, transactionType, description || `Custom ${transactionType} of ${amount} points`)
-    setCustomAmount('')
-    setDescription('')
+    // Give points to all selected students
+    const promises = Array.from(selectedStudents).map(studentId => 
+      onPointsUpdate(studentId, pointsAmount, 'credit', description || `Gave ${pointsAmount} points`)
+    )
+    
+    try {
+      await Promise.all(promises)
+      setAmount('')
+      setDescription('')
+    } catch (error) {
+      console.error('Error giving points to students:', error)
+    }
   }
 
   return (
     <div className="points-manager">
-      <div className="total-points">
-        <h2>TOTAL POINTS = {totalPoints.toLocaleString()}</h2>
-      </div>
-      
-      <div className="points-controls">
-        <div className="student-selection">
-          <label>Select Student:</label>
-          <select 
-            value={selectedStudent} 
-            onChange={(e) => setSelectedStudent(e.target.value)}
-          >
-            <option value="">Choose a student...</option>
-            <option value="student-1">John Smith (S001)</option>
-            <option value="student-2">Sarah Johnson (S002)</option>
-            <option value="student-3">Mike Davis (S003)</option>
-          </select>
-        </div>
-        
-        <div className="transaction-type">
-          <label>Type:</label>
-          <select 
-            value={transactionType} 
-            onChange={(e) => setTransactionType(e.target.value)}
-          >
-            <option value="credit">Credit</option>
-            <option value="reward">Reward</option>
-            <option value="penalty">Penalty</option>
-          </select>
-        </div>
-        
-        <div className="description">
-          <label>Description (optional):</label>
+      <h3 className="points-manager-title">Give Points to Selected Students</h3>
+      <div className="points-manager-content">
+        <div className="points-input-group">
+          <label htmlFor="points-amount">Amount to Give</label>
           <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter description..."
-          />
-        </div>
-      </div>
-      
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="quick-buttons">
-          {quickAmounts.map(amount => (
-            <button
-              key={amount}
-              onClick={() => handleQuickGive(amount)}
-              className="quick-button"
-              disabled={!selectedStudent || amount > totalPoints}
-            >
-              {amount}
-            </button>
-          ))}
-        </div>
-      </div>
-      
-      <div className="custom-amount">
-        <h3>Custom Amount</h3>
-        <div className="custom-input">
-          <input
+            id="points-amount"
             type="number"
-            value={customAmount}
-            onChange={(e) => setCustomAmount(e.target.value)}
+            className="points-amount-input"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
             placeholder="Enter amount..."
             min="1"
             max={totalPoints}
           />
+        </div>
+        
+        <div className="points-input-group">
+          <label htmlFor="points-reason">Reason (Optional)</label>
+          <textarea
+            id="points-reason"
+            className="points-reason-textarea"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Reason for giving points..."
+            rows="3"
+          />
+        </div>
+        
+        <div className="points-action-buttons">
           <button 
-            onClick={handleCustomGive}
-            disabled={!selectedStudent || !customAmount}
+            className="give-points-button"
+            onClick={handleGivePoints}
+            disabled={!selectedStudents || selectedStudents.size === 0 || !amount}
           >
             Give Points
+          </button>
+          <button 
+            className="undo-button"
+            onClick={() => {
+              setAmount('')
+              setDescription('')
+            }}
+          >
+            Clear
           </button>
         </div>
       </div>
