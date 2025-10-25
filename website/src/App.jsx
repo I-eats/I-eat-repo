@@ -252,7 +252,7 @@ function AppContent() {
   return (
     <div className="app-container">
       <div className="auth-card">
-        <h1 className="auth-title">i eat</h1>
+        <h1 className="auth-title">StudyBites</h1>
         
         <div className="auth-form">
           <div className="form-group">
