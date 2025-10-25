@@ -89,6 +89,7 @@ docs/0_context/
 - **Instructions → Setup**: Universal instructions reference setup procedures
 - **Setup → Tools**: Setup procedures reference universal tools
 - **Tools → Project**: Universal tools support project-specific implementations
+- **Supabase Integration**: JavaScript-only database operations rule enforced across all levels
 
 ### **Project Level Cross-References**
 - **Project → Features**: Project standards guide feature development
@@ -135,9 +136,10 @@ docs/0_context/
 2. Follow universal instructions in `trickle_down_0_universal/0_instruction_docs/`
 3. **CRITICAL**: Read `trickle_down_0_universal/0_instruction_docs/cursor_terminal_issues.md` for terminal handling
 4. **MANDATORY**: Follow `trickle_down_0_universal/0_instruction_docs/terminal_execution_protocol.md` for all commands
-5. Use setup procedures in `trickle_down_0.5_setup/0_instruction_docs/`
-6. Apply universal tools from `trickle_down_0.75_universal_tools/0_instruction_docs/`
-7. Reference completed work in `2_archive_docs/` folders
+5. **MANDATORY**: Follow `trickle_down_0_universal/0_instruction_docs/supabase_javascript_integration_rule.md` for all database operations
+6. Use setup procedures in `trickle_down_0.5_setup/0_instruction_docs/`
+7. Apply universal tools from `trickle_down_0.75_universal_tools/0_instruction_docs/`
+8. Reference completed work in `2_archive_docs/` folders
 
 ## 🔍 Search and Discovery
 
@@ -155,6 +157,7 @@ docs/0_context/
 - **Project Tools**: `trickle_down_1.5_project_tools/`
 - **Feature Development**: `trickle_down_2_features/`
 - **Component Implementation**: `trickle_down_3_components/`
+- **Supabase Integration Rule**: `trickle_down_0_universal/0_instruction_docs/supabase_javascript_integration_rule.md` (MANDATORY)
 
 ### **MCP Tools (Model Context Protocol)**
 - **Overview**: `trickle_down_0.75_universal_tools/0_instruction_docs/mcp-tools/README.md`
