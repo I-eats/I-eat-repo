@@ -1,6 +1,7 @@
 // components/teacher/TeacherDashboard.jsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { pointsService } from '../../services/points'
+import dashboardService from '../../services/dashboard'
 import { supabase } from '../../services/api'
 import ClassHeader from './ClassHeader'
 import PointsManager from './PointsManager'
@@ -13,76 +14,120 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    fetchClassData()
+  const fetchClassData = useCallback(async () => {
+    try {
+      setError('')
+
+      // Get current authenticated user
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+      if (authError) throw authError
+      if (!authUser) throw new Error('Not authenticated')
+
+      // Fetch classes owned by teacher
+      const { data: teacherClasses, error: classError } = await dashboardService.getTeacherClasses(authUser.id)
+      if (classError) throw classError
+
+      if (!teacherClasses || teacherClasses.length === 0) {
+        setClassData(null)
+        setStudents([])
+        return
+      }
+
+      const activeClass = teacherClasses[0]
+      const teacherDisplayName =
+        authUser.user_metadata?.full_name ??
+        authUser.email?.split('@')[0]?.toUpperCase() ??
+        'Teacher'
+
+      setClassData({
+        id: activeClass.id,
+        name: activeClass.name,
+        code: activeClass.code,
+        teacher_name: teacherDisplayName,
+        total_points: activeClass.total_points ?? 0,
+        description: activeClass.description ?? ''
+      })
+
+      // Fetch students for the active class
+      const { data: classStudents, error: studentsError } = await dashboardService.getClassStudents(activeClass.id)
+      if (studentsError) throw studentsError
+
+      const formattedStudents = (classStudents ?? []).map((student) => {
+        const fallbackName = student.user?.email?.split('@')[0] ?? student.student_id
+        return {
+          id: student.id,
+          user_id: student.user_id,
+          student_id: student.student_id,
+          name: student.user?.raw_user_meta_data?.full_name ?? fallbackName,
+          points_balance: student.points_balance ?? 0,
+          email: student.user?.email ?? ''
+        }
+      })
+
+      setStudents(formattedStudents)
+      setSelectedStudents(new Set())
+    } catch (err) {
+      setError(err.message || 'Failed to load class data')
+      console.error('Error fetching class data:', err)
+    }
   }, [])
 
-  const fetchClassData = async () => {
-    try {
+  useEffect(() => {
+    let isMounted = true
+    const initialise = async () => {
+      if (!isMounted) return
       setLoading(true)
-      setError('')
-      
-      // Get current user data (teacher)
-      const userData = await pointsService.getCurrentUserData()
-      
-      // For now, we'll create a demo class structure
-      // In a real app, you'd fetch this from the classes table
-      const demoClass = {
-        id: 'demo-class-1',
-        name: 'BILL 225C',
-        code: 'BILL225C',
-        teacher_name: 'MR. GORDO',
-        total_points: userData.credit_count
+      await fetchClassData()
+      if (isMounted) {
+        setLoading(false)
       }
-      
-      setClassData(demoClass)
-      
-      // Get all users from the database to use as students
-      const { data: allUsers, error: usersError } = await supabase
-        .from('user')
-        .select('*')
-
-      if (usersError) throw usersError
-
-      // If we have less than 5 users, create some additional student users
-      if (allUsers.length < 5) {
-        const additionalUsers = []
-        for (let i = allUsers.length; i < 5; i++) {
-          const { data: newUser, error: createError } = await supabase
-            .from('user')
-            .insert({
-              user_id: i + 1, // Use sequential numbers for user_id
-              credit_count: Math.floor(Math.random() * 2000) + 100, // Random points between 100-2100
-              role: 1
-            })
-            .select()
-            .single()
-
-          if (!createError && newUser) {
-            additionalUsers.push(newUser)
-          }
-        }
-        allUsers.push(...additionalUsers)
-      }
-
-      // Convert users to student format (skip the first user as it's the teacher)
-      const studentUsers = allUsers.slice(1).map((user, index) => ({
-        id: `student-${index + 1}`,
-        user_id: user.user_id,
-        student_id: `S${String(index + 1).padStart(3, '0')}`,
-        name: `Student ${index + 1}`,
-        points_balance: user.credit_count,
-        email: `student${index + 1}@byui.edu`
-      }))
-      
-      setStudents(studentUsers)
-    } catch (err) {
-      setError('Failed to load class data')
-      console.error('Error fetching class data:', err)
-    } finally {
-      setLoading(false)
     }
-  }
+    initialise()
+    return () => {
+      isMounted = false
+    }
+  }, [fetchClassData])
+
+  useEffect(() => {
+    if (!classData?.id) return
+
+    const classChannel = supabase
+      .channel(`teacher-class-${classData.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'classes',
+          filter: `id=eq.${classData.id}`
+        },
+        () => {
+          fetchClassData()
+        }
+      )
+      .subscribe()
+
+    const studentsChannel = supabase
+      .channel(`teacher-students-${classData.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'students',
+          filter: `class_id=eq.${classData.id}`
+        },
+        () => {
+          fetchClassData()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      classChannel.unsubscribe()
+      studentsChannel.unsubscribe()
+    }
+  }, [classData?.id, fetchClassData])
 
   const handleStudentSelect = (studentId) => {
     const newSelected = new Set(selectedStudents)
@@ -96,34 +141,27 @@ const TeacherDashboard = () => {
 
   const handlePointsUpdate = async (studentId, amount, type, description) => {
     try {
-      // Find the student to get their user_id
-      const student = students.find(s => s.id === studentId)
-      if (!student) {
-        alert('Student not found')
-        return
+      const transactionType = amount < 0 ? 'penalty' : type
+      const result = await pointsService.givePoints(
+        studentId,
+        amount,
+        transactionType,
+        description
+      )
+
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to update points')
       }
 
-      // Call the real database service
-      await pointsService.givePoints(student.user_id, amount, description)
-      
-      // Update local state for better UX
-      setStudents(prevStudents => 
-        prevStudents.map(s => 
-          s.id === studentId 
-            ? { ...s, points_balance: s.points_balance + amount }
-            : s
-        )
-      )
-      
-      setClassData(prevClass => ({
-        ...prevClass,
-        total_points: prevClass.total_points - amount
-      }))
-      
-      console.log('Successfully gave points:', { studentId, amount, description })
+      // Refresh data from database to ensure UI matches
+      await fetchClassData()
+
+      console.log('Successfully updated points:', { studentId, amount, description })
     } catch (error) {
-      console.error('Error giving points:', error)
+      console.error('Error updating points:', error)
       alert(`Error: ${error.message}`)
+      // Refresh to show correct data even on error
+      await fetchClassData()
     }
   }
 
@@ -160,15 +198,15 @@ const TeacherDashboard = () => {
           </div>
         </div>
       </div>
-      <StudentList 
-        students={students}
-        selectedStudents={selectedStudents}
-        onStudentSelect={handleStudentSelect}
-      />
-      <PointsManager 
+      <PointsManager
         totalPoints={classData?.total_points || 0}
         onPointsUpdate={handlePointsUpdate}
         selectedStudents={selectedStudents}
+      />
+      <StudentList
+        students={students}
+        selectedStudents={selectedStudents}
+        onStudentSelect={handleStudentSelect}
       />
     </div>
   )

@@ -585,8 +585,8 @@ html, body {
 .points-manager {
   background: white;
   border-radius: clamp(10px, 2vw, 15px);
-  padding: clamp(15px, 3vw, 25px);
-  margin-bottom: clamp(10px, 2vw, 20px);
+  padding: clamp(12px, 2.5vw, 18px);
+  margin-bottom: clamp(10px, 2vw, 15px);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
   display: block;
@@ -595,23 +595,24 @@ html, body {
 }
 
 .points-manager-title {
-  margin: 0 0 clamp(15px, 3vw, 20px) 0;
+  margin: 0 0 clamp(10px, 2vw, 12px) 0;
   color: var(--primary-blue);
-  font-size: clamp(1.1rem, 3vw, 1.5rem);
-  font-weight: bold;
-  text-align: center;
+  font-size: clamp(18px, 4vw, 24px);
+  font-weight: normal;
+  text-align: left;
 }
 
 .points-manager-content {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(15px, 3vw, 20px);
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: clamp(10px, 2vw, 15px);
+  align-items: start;
 }
 
 .points-input-group {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1.5vw, 8px);
+  gap: clamp(4px, 1vw, 6px);
 }
 
 .points-input-group label {
@@ -622,104 +623,100 @@ html, body {
 
 .points-amount-input {
   width: 100%;
-  padding: clamp(12px, 2.5vw, 14px);
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: clamp(1rem, 2.5vw, 1.1rem);
-  font-weight: 500;
+  padding: clamp(8px, 2vw, 10px);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   transition: border-color 0.3s ease;
 }
 
 .points-amount-input:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(11, 163, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(11, 163, 255, 0.1);
 }
 
 .points-reason-textarea {
   width: 100%;
-  padding: clamp(12px, 2.5vw, 14px);
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: clamp(0.9rem, 2vw, 1rem);
+  padding: clamp(8px, 2vw, 10px);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
   font-family: inherit;
   resize: vertical;
-  min-height: clamp(80px, 15vw, 100px);
+  min-height: clamp(60px, 10vw, 70px);
   transition: border-color 0.3s ease;
 }
 
 .points-reason-textarea:focus {
   outline: none;
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(11, 163, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(11, 163, 255, 0.1);
 }
 
 .points-action-buttons {
   display: flex;
-  gap: clamp(10px, 2vw, 12px);
-  flex-wrap: wrap;
-  margin-top: clamp(10px, 2vw, 15px);
+  flex-direction: column;
+  gap: clamp(6px, 1.5vw, 8px);
+  align-self: center;
 }
 
 .give-points-button {
-  flex: 1;
-  min-width: 200px;
-  padding: clamp(12px, 2.5vw, 16px) clamp(20px, 4vw, 24px);
+  padding: clamp(8px, 2vw, 10px) clamp(12px, 3vw, 16px);
   background: var(--primary-blue);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(11, 163, 255, 0.3);
+  white-space: nowrap;
 }
 
 .give-points-button:hover:not(:disabled) {
   background: #0099e6;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(11, 163, 255, 0.4);
 }
 
 .give-points-button:disabled {
   background: #ccc;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 .undo-button {
-  padding: clamp(12px, 2.5vw, 16px) clamp(20px, 4vw, 24px);
+  padding: clamp(8px, 2vw, 10px) clamp(12px, 3vw, 16px);
   background: #ff9800;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
   white-space: nowrap;
 }
 
 .undo-button:hover {
   background: #f57c00;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
 }
 
 @media (max-width: 768px) {
+  .points-manager-content {
+    grid-template-columns: 1fr;
+    gap: clamp(8px, 2vw, 10px);
+  }
+
   .points-action-buttons {
-    flex-direction: column;
+    flex-direction: row;
+    width: 100%;
   }
 
   .give-points-button {
-    width: 100%;
+    flex: 1;
   }
 
   .undo-button {
-    width: 100%;
+    flex: 0 0 auto;
   }
 }
 

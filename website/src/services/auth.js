@@ -15,7 +15,11 @@ export const authService = {
       .select('role')
       .eq('user_id', user.id)
       .single()
-    
+
+    // If no role found (PGRST116), return null instead of throwing
+    if (error && error.code === 'PGRST116') {
+      return null
+    }
     if (error) throw error
     return data?.role
   },

@@ -1,7 +1,29 @@
 // components/student/PointsDisplay.jsx
 import React from 'react'
 
-const PointsDisplay = ({ points, transactions }) => {
+const PointsDisplay = ({ points, transactions = [] }) => {
+  const breakdown = transactions.reduce(
+    (acc, transaction) => {
+      const amount = Number(transaction.amount) || 0
+      if (amount <= 0) return acc
+
+      const createdAt = transaction.created_at ? new Date(transaction.created_at) : null
+      const now = new Date()
+      const diffInMs = createdAt ? now - createdAt : null
+      const diffInDays = diffInMs != null ? diffInMs / (1000 * 60 * 60 * 24) : null
+
+      acc.total += amount
+      if (diffInDays != null && diffInDays <= 7) {
+        acc.week += amount
+      }
+      if (diffInDays != null && diffInDays <= 30) {
+        acc.month += amount
+      }
+      return acc
+    },
+    { week: 0, month: 0, total: 0 }
+  )
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -50,15 +72,21 @@ const PointsDisplay = ({ points, transactions }) => {
       <div className="points-breakdown">
         <div className="breakdown-item">
           <span className="breakdown-label">This Week:</span>
-          <span className="breakdown-value">+150</span>
+          <span className="breakdown-value">
+            +{breakdown.week.toLocaleString()}
+          </span>
         </div>
         <div className="breakdown-item">
           <span className="breakdown-label">This Month:</span>
-          <span className="breakdown-value">+450</span>
+          <span className="breakdown-value">
+            +{breakdown.month.toLocaleString()}
+          </span>
         </div>
         <div className="breakdown-item">
           <span className="breakdown-label">Total Earned:</span>
-          <span className="breakdown-value">+1,250</span>
+          <span className="breakdown-value">
+            +{breakdown.total.toLocaleString()}
+          </span>
         </div>
       </div>
       

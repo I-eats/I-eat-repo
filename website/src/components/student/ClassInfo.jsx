@@ -1,8 +1,11 @@
 // components/student/ClassInfo.jsx
 import React from 'react'
 
-const ClassInfo = ({ classData }) => {
+const ClassInfo = ({ classData, classmates = [] }) => {
   if (!classData) return null
+
+  const scheduleDays = classData.schedule_days || 'Monday, Wednesday, Friday'
+  const scheduleTime = classData.schedule_time || '10:00 AM - 11:00 AM'
 
   return (
     <div className="class-info">
@@ -21,27 +24,29 @@ const ClassInfo = ({ classData }) => {
         
         <div className="class-schedule">
           <h5>Schedule</h5>
-          <p>Monday, Wednesday, Friday</p>
-          <p>10:00 AM - 11:00 AM</p>
+          <p>{scheduleDays}</p>
+          <p>{scheduleTime}</p>
         </div>
       </div>
       
       <div className="classmates">
         <h4>Classmates</h4>
-        <div className="classmates-list">
-          <div className="classmate">
-            <div className="classmate-avatar">S</div>
-            <span>Sarah Johnson</span>
+        {classmates.length > 0 ? (
+          <div className="classmates-list">
+            {classmates.map((classmate) => (
+              <div className="classmate" key={classmate.id}>
+                <div className="classmate-avatar">
+                  {classmate.name?.charAt(0)?.toUpperCase() ?? '?'}
+                </div>
+                <span>{classmate.name}</span>
+              </div>
+            ))}
           </div>
-          <div className="classmate">
-            <div className="classmate-avatar">M</div>
-            <span>Mike Davis</span>
+        ) : (
+          <div className="empty-state">
+            <p>No classmates found yet.</p>
           </div>
-          <div className="classmate">
-            <div className="classmate-avatar">A</div>
-            <span>Alex Brown</span>
-          </div>
-        </div>
+        )}
       </div>
       
       <div className="achievements">

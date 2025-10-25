@@ -1,75 +1,212 @@
 // components/student/StudentDashboard.jsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../../services/api'
+import dashboardService from '../../services/dashboard'
 import PointsDisplay from './PointsDisplay'
 import ClassInfo from './ClassInfo'
 
 const StudentDashboard = () => {
   const [studentData, setStudentData] = useState(null)
   const [classData, setClassData] = useState(null)
+  const [classmates, setClassmates] = useState([])
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    fetchStudentData()
+  const refreshTransactions = useCallback(async (studentId) => {
+    if (!studentId) return
+    try {
+      const { data, error } = await dashboardService.getStudentTransactions(studentId)
+      if (error) throw error
+      setTransactions(data ?? [])
+    } catch (transactionError) {
+      console.error('Error fetching transactions:', transactionError)
+      setTransactions([])
+    }
   }, [])
 
-  const fetchStudentData = async () => {
-    try {
-      setLoading(true)
-      setError('')
-      
-      // Demo data for now
-      const demoStudent = {
-        id: 'student-demo-1',
-        name: 'John Smith',
-        student_id: 'S001',
-        points_balance: 1250,
-        email: 'john.smith@byui.edu'
-      }
-      
-      const demoClass = {
-        id: 'class-demo-1',
-        name: 'BILL 225C',
-        code: 'BILL225C',
-        teacher_name: 'MR. GORDO',
-        description: 'Introduction to Business Information Systems'
-      }
-      
-      const demoTransactions = [
-        {
-          id: 'txn-1',
-          amount: 50,
-          type: 'credit',
-          description: 'Participation in class discussion',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 'txn-2',
-          amount: 100,
-          type: 'reward',
-          description: 'Excellent homework submission',
-          created_at: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: 'txn-3',
-          amount: -10,
-          type: 'penalty',
-          description: 'Late assignment submission',
-          created_at: new Date(Date.now() - 172800000).toISOString()
-        }
-      ]
-      
-      setStudentData(demoStudent)
-      setClassData(demoClass)
-      setTransactions(demoTransactions)
-    } catch (err) {
-      setError('Failed to load student data')
-      console.error('Error fetching student data:', err)
-    } finally {
-      setLoading(false)
+  const refreshClassmates = useCallback(async (classId, currentStudentId) => {
+    if (!classId) {
+      setClassmates([])
+      return
     }
-  }
+    try {
+      const { data, error } = await dashboardService.getClassStudents(classId)
+      if (error) throw error
+      const classmatesList = (data ?? [])
+        .filter(student => student.id !== currentStudentId)
+        .map(student => {
+          const fallbackName = student.user?.email?.split('@')[0] ?? 'Classmate'
+          return {
+            id: student.id,
+            name: student.user?.raw_user_meta_data?.full_name ?? fallbackName,
+            email: student.user?.email ?? ''
+          }
+        })
+      setClassmates(classmatesList)
+    } catch (classmatesError) {
+      console.error('Error fetching classmates:', classmatesError)
+      setClassmates([])
+    }
+  }, [])
+
+  const fetchStudentData = useCallback(async () => {
+    try {
+      setError('')
+
+      // Get current authenticated user
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+      if (authError) throw authError
+      if (!authUser) throw new Error('Not authenticated')
+
+      // Load the student's record (includes class + teacher info)
+      const { data: studentRecord, error: studentError } = await dashboardService.getStudentByUserId(authUser.id)
+      if (studentError) throw studentError
+      if (!studentRecord) throw new Error('Student profile not found')
+
+      const displayName =
+        authUser.user_metadata?.full_name ??
+        authUser.email?.split('@')[0] ??
+        'Student'
+
+      setStudentData({
+        id: studentRecord.id,
+        class_id: studentRecord.class_id,
+        student_id: studentRecord.student_id,
+        points_balance: studentRecord.points_balance ?? 0,
+        email: authUser.email ?? '',
+        name: displayName
+      })
+
+      if (studentRecord.class) {
+        const teacherName =
+          studentRecord.class.teacher?.raw_user_meta_data?.full_name ??
+          studentRecord.class.teacher?.email ??
+          'Your Instructor'
+
+        setClassData({
+          id: studentRecord.class.id,
+          name: studentRecord.class.name,
+          code: studentRecord.class.code,
+          description: studentRecord.class.description ?? 'Welcome to your class!',
+          teacher_name: teacherName
+        })
+      } else {
+        setClassData(null)
+      }
+
+      await refreshClassmates(studentRecord.class_id, studentRecord.id)
+      await refreshTransactions(studentRecord.id)
+    } catch (err) {
+      setError(err.message || 'Failed to load student data')
+      console.error('Error fetching student data:', err)
+    }
+  }, [refreshClassmates, refreshTransactions])
+
+  useEffect(() => {
+    let isMounted = true
+    const initialise = async () => {
+      if (!isMounted) return
+      setLoading(true)
+      await fetchStudentData()
+      if (isMounted) {
+        setLoading(false)
+      }
+    }
+    initialise()
+    return () => {
+      isMounted = false
+    }
+  }, [fetchStudentData])
+
+  useEffect(() => {
+    if (!studentData?.id) return
+
+    const channel = supabase
+      .channel(`student-${studentData.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'students',
+          filter: `id=eq.${studentData.id}`
+        },
+        () => {
+          fetchStudentData()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [studentData?.id, fetchStudentData])
+
+  useEffect(() => {
+    if (!classData?.id || !studentData?.id) return
+
+    const classmatesChannel = supabase
+      .channel(`classmates-${classData.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'students',
+          filter: `class_id=eq.${classData.id}`
+        },
+        () => {
+          refreshClassmates(classData.id, studentData.id)
+        }
+      )
+      .subscribe()
+
+    const classChannel = supabase
+      .channel(`class-${classData.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'classes',
+          filter: `id=eq.${classData.id}`
+        },
+        () => {
+          fetchStudentData()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      classmatesChannel.unsubscribe()
+      classChannel.unsubscribe()
+    }
+  }, [classData?.id, studentData?.id, fetchStudentData, refreshClassmates])
+
+  useEffect(() => {
+    if (!studentData?.id) return
+
+    const transactionsChannel = supabase
+      .channel(`transactions-${studentData.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'point_transactions',
+          filter: `student_id=eq.${studentData.id}`
+        },
+        () => {
+          refreshTransactions(studentData.id)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      transactionsChannel.unsubscribe()
+    }
+  }, [studentData?.id, refreshTransactions])
 
   if (loading) {
     return (
@@ -111,7 +248,7 @@ const StudentDashboard = () => {
         transactions={transactions}
       />
       
-      <ClassInfo classData={classData} />
+      <ClassInfo classData={classData} classmates={classmates} />
     </div>
   )
 }
