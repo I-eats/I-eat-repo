@@ -1,0 +1,17 @@
+{
+  "security": {
+    "service_account_rotation": {
+      "enabled": true,
+      "rotation_interval_days": 90,
+      "max_key_age_days": 365
+    },
+    "iam_monitoring": {
+      "enabled": true,
+      "alert_on_changes": true
+    },
+    "secrets_management": {
+      "use_secret_manager": true,
+      "encrypt_at_rest": true
+    }
+  }
+}

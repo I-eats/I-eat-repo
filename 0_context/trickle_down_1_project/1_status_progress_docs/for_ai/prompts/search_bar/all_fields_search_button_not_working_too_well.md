@@ -1,0 +1,1 @@
+Whenever I try to search for a word using the all_fields_search_button within the view all words page, it doesn't seem to work. It seems like it's working for when I use the other buttons, but not when I use the all_fields_search_button. Please fix that. 

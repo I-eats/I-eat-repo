@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--browser",
+        "chromium"
+      ]
+    },
+    "browser": {
+      "command": "npx",
+      "args": [
+        "@agent-infra/mcp-server-browser"
+      ]
+    },
+    "web-search": {
+      "command": "npx",
+      "args": ["tavily-mcp"],
+      "env": {
+        "TAVILY_API_KEY": "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"
+      }
+    }
+  }
+}

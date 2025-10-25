@@ -1,0 +1,19 @@
+{
+  "monitoring": {
+    "performance_monitoring": {
+      "enabled": true,
+      "data_collection_enabled": true
+    },
+    "crashlytics": {
+      "enabled": true
+    },
+    "analytics": {
+      "enabled": true
+    },
+    "logging": {
+      "level": "INFO",
+      "firebase_operations": true,
+      "api_calls": true
+    }
+  }
+}
