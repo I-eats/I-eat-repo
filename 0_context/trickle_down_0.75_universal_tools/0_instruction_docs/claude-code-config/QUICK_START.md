@@ -14,7 +14,23 @@
    cat > .claude/settings.json << 'EOF'
    {
      "permissions": {
-       "disableBypassPermissionsMode": false
+       "defaultMode": "bypassPermissions",
+       "allow": [
+         "WebSearch",
+         "WebFetch(domain:*)",
+         "Read(/**)",
+         "Edit(**)",
+         "Write(**)",
+         "Bash(git:*)",
+         "Bash(npm:*)",
+         "Bash(npx:*)"
+       ],
+       "deny": [
+         "Bash(rm -rf /)",
+         "Bash(sudo rm -rf :*)",
+         "Bash(git push --force origin main)",
+         "Bash(git push --force origin master)"
+       ]
      }
    }
    EOF
@@ -25,6 +41,8 @@
    claude
    ```
 
+   **You should now see the Shift+Tab bypass mode toggle indicator.**
+
 ### For Shared Repositories (Local Override)
 
 1. **Create local settings:**
@@ -33,7 +51,23 @@
    cat > .claude/settings.local.json << 'EOF'
    {
      "permissions": {
-       "disableBypassPermissionsMode": false
+       "defaultMode": "bypassPermissions",
+       "allow": [
+         "WebSearch",
+         "WebFetch(domain:*)",
+         "Read(/**)",
+         "Edit(**)",
+         "Write(**)",
+         "Bash(git:*)",
+         "Bash(npm:*)",
+         "Bash(npx:*)"
+       ],
+       "deny": [
+         "Bash(rm -rf /)",
+         "Bash(sudo rm -rf :*)",
+         "Bash(git push --force origin main)",
+         "Bash(git push --force origin master)"
+       ]
      }
    }
    EOF
@@ -63,23 +97,37 @@ Look for: "Bypass permissions mode: enabled"
 
 ## Common Configurations
 
-### Safe Bypass (Recommended for Beginners)
+### What Actually Works
 
-Even with bypass enabled, protect critical operations:
+**⚠️ IMPORTANT**: The `disableBypassPermissionsMode: false` approach shown in older documentation **does NOT work**. The correct configuration is:
 
 ```json
 {
   "permissions": {
-    "disableBypassPermissionsMode": false,
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Read(/**)",
+      "Edit(**)",
+      "Write(**)",
+      "Bash(git:*)",
+      "Bash(npm:*)"
+    ],
     "deny": [
-      "Bash(rm -rf *)",
-      "Bash(git push --force*)",
-      "Edit(.env*)",
-      "Read(.env*)"
+      "Bash(rm -rf /)",
+      "Bash(sudo rm -rf :*)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Edit(.env*)"
     ]
   }
 }
 ```
+
+**Key Points:**
+- Use `"defaultMode": "bypassPermissions"` to enable bypass mode and show the Shift+Tab toggle
+- Include comprehensive `allow` rules for the operations you need
+- Add `deny` rules for dangerous operations
+- The `disableBypassPermissionsMode` field only accepts `"disable"` as a value (to disable bypass mode)
 
 ### Full Documentation
 
