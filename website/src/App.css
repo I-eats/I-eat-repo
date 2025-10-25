@@ -129,6 +129,37 @@
   color: var(--dark-blue);
 }
 
+.demo-notice {
+  background: #E8F5E8;
+  border: 1px solid #4CAF50;
+  border-radius: 6px;
+  color: #2E7D32;
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem 0;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.status-message {
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.status-message.success {
+  background: #E8F5E8;
+  border: 1px solid #4CAF50;
+  color: #2E7D32;
+}
+
+.status-message.error {
+  background: #FFEBEE;
+  border: 1px solid #F44336;
+  color: #C62828;
+}
+
 @media (max-width: 480px) {
   .auth-card {
     padding: 2rem 1.5rem;
