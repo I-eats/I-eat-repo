@@ -251,9 +251,11 @@ function AppContent() {
   // Show login/signup form
   return (
     <div className="app-container">
+      <div className="auth-header">
+        <h1>i eat</h1>
+      </div>
+      
       <div className="auth-card">
-        <h1 className="auth-title">StudyBites</h1>
-        
         <div className="auth-form">
           <div className="form-group">
             <input
@@ -261,53 +263,50 @@ function AppContent() {
               placeholder="sum23003"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="email-input"
             />
-            <span className="email-end-portion">@byui.edu</span>
+            <span>@byui.edu</span>
           </div>
           
-          <input
-            type="password"
-            placeholder="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="password-input"
-          />
+          <div className="form-group">
+            <input
+              type="password"
+              placeholder="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
           
           {authMode === 'signup' && (
-            <div className="terms-wrapper">
-              <div className="terms-container">
-                <div className="term">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="term-checkbox"
-                  />
-                  <label htmlFor="terms" className="term-text">
-                    By creating an account, you agree to our <span className="term-link">Terms of Service</span>
-                  </label>
-                </div>
-                <div className="term">
-                  <input
-                    type="checkbox"
-                    id="newsletter"
-                    checked={newsletter}
-                    onChange={(e) => setNewsletter(e.target.checked)}
-                    className="term-checkbox"
-                  />
-                  <label htmlFor="newsletter" className="term-text">
-                    I would like to receive marketing emails and other updates
-                  </label>
-                </div>
+            <>
+              <div className="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                />
+                <label htmlFor="terms">
+                  By creating an account, you agree to our <a href="#">Terms of Service</a>
+                </label>
               </div>
-            </div>
+              
+              <div className="checkbox-group">
+                <input
+                  type="checkbox"
+                  id="newsletter"
+                  checked={newsletter}
+                  onChange={(e) => setNewsletter(e.target.checked)}
+                />
+                <label htmlFor="newsletter">
+                  I would like to receive marketing emails and other updates
+                </label>
+              </div>
+            </>
           )}
 
           <div className="auth-buttons">
             <button
-              className={`auth-button ${authMode === 'signin' ? 'primary' : 'secondary'} ${disabled ? 'disabled' : ''}`}
+              className={`auth-button ${authMode === 'signin' ? 'primary' : 'secondary'}`}
               onClick={() => {
                 setAuthMode('signin')
                 setError('')
@@ -317,7 +316,7 @@ function AppContent() {
               Sign In
             </button>
             <button
-              className={`auth-button ${authMode === 'signup' ? 'primary' : 'secondary'} ${disabled ? 'disabled' : ''}`}
+              className={`auth-button ${authMode === 'signup' ? 'primary' : 'secondary'}`}
               onClick={() => {
                 setAuthMode('signup')
                 setError('')
@@ -329,11 +328,11 @@ function AppContent() {
           </div>
 
           <button
-            className={`submit-button ${disabled ? 'disabled' : ''}`}
+            className={`create-button ${disabled ? 'disabled' : ''}`}
             onClick={handleAuthentication}
             disabled={disabled || isLoading}
           >
-            {isLoading ? (authMode === 'signin' ? 'Signing In...' : 'Creating Account...') : (authMode === 'signin' ? 'Sign In' : 'Create Account')}
+            {isLoading ? (authMode === 'signin' ? 'Signing In...' : 'Creating Account...') : 'create'}
           </button>
         </div>
 
