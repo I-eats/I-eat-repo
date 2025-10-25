@@ -1,101 +1,73 @@
-import { useState } from 'react'
+// import { Auth } from '@supabase/auth-ui-react'
+// import { ThemeSupa } from '@supabase/auth-ui-shared'
+// import { createClient } from '@supabase/supabase-js'
+// import './App.css'
+
+// // Vite uses import.meta.env instead of process.env
+// const supabase = createClient(
+//   import.meta.env.VITE_SUPABASE_URL,
+//   import.meta.env.VITE_SUPABASE_ANON_KEY
+// )
+
+// function App() {
+//   return (
+//     <div className="App">
+//       <h1>Supabase Auth Demo</h1>
+//       <Auth
+//         supabaseClient={supabase}
+//         appearance={{ theme: ThemeSupa }}
+//         theme="dark"
+//       />
+//     </div>
+//   )
+// }
+
+// export default App
+
+import { useEffect } from 'react'
+import { Auth } from '@supabase/auth-ui-react'
+import { ThemeSupa } from '@supabase/auth-ui-shared'
+import { createClient } from '@supabase/supabase-js'
 import './App.css'
 
+
 function App() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
+  useEffect(() => {
+    const testConnection = async () => {
+      console.log('Testing Supabase connection...')
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      // ✅ Make sure these are prefixed with VITE_ in .env.local
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_KEY
+)
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (isLogin) {
-      console.log('Login with:', formData.email, formData.password)
-    } else {
-      if (formData.password !== formData.confirmPassword) {
-        alert('Passwords do not match!')
-        return
-      }
-      console.log('Sign up with:', formData.email, formData.password)
+
+      // // simple query to check if it works
+      // const { data, error } = await supabase.from('user').select().limit(1)
+      // if (error) {
+      //   console.error('❌ Supabase connection failed:', error.message)
+      // } else {
+      //   console.log('✅ Supabase connected! Example data:', data)
+      // }
+
+      const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: password
+          })
     }
-  }
+
+    testConnection()
+  }, [])
 
   return (
-    <div className="app-container">
-      <div className="auth-card">
-        <h1 className="auth-title">{isLogin ? 'Welcome Back' : 'Create Account'}</h1>
-        <p className="auth-subtitle">
-          {isLogin ? 'Sign in to continue' : 'Sign up to get started'}
-        </p>
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your password"
-            />
-          </div>
-
-          {!isLogin && (
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-                placeholder="Confirm your password"
-              />
-            </div>
-          )}
-
-          <button type="submit" className="submit-btn">
-            {isLogin ? 'Sign In' : 'Sign Up'}
-          </button>
-        </form>
-
-        <div className="auth-toggle">
-          <p>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="toggle-btn"
-            >
-              {isLogin ? 'Sign Up' : 'Sign In'}
-            </button>
-          </p>
-        </div>
-      </div>
+    <div className="App">
+      <h1>Supabase Auth Demo</h1>
+      {/* <Auth
+        supabaseClient={supabase}
+        appearance={{ theme: ThemeSupa }}
+        theme="dark"
+      /> */}
     </div>
   )
 }
