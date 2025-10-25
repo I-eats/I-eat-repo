@@ -135,6 +135,7 @@
   background: white;
   color: #333;
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 .form-group input:focus {
