@@ -1,18 +1,61 @@
-# React + Vite
+# I-Eat University Food Delivery Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite web application for university food delivery with Supabase backend.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend**: React 19.1.1 + Vite 7.1.7
+- **Backend**: Supabase (Authentication, Database, Real-time)
+- **Styling**: CSS (custom styles in `src/App.css` and `src/index.css`)
 
-## React Compiler
+## Project Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `index.html` - HTML entry point
+- `src/main.jsx` - React entry point
+- `src/App.jsx` - Main application component (login/signup form)
+- `src/App.css` - Application styles
+- `src/index.css` - Global styles
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+All commands must be run from the `website/` directory:
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server (http://localhost:5173)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Run linter
+npm run lint
+```
+
+## Current Features
+
+- Login/Signup authentication form UI
+- Form state management with React hooks
+- Password confirmation validation
+- Toggle between login and signup modes
+
+## Supabase Integration
+
+This project uses **Supabase** for all backend services:
+- Authentication
+- Database
+- Real-time subscriptions
+
+> **Note:** Historical documentation may reference Firebase. This is outdated - the project uses Supabase.
+
+## Documentation
+
+- See `/CLAUDE.md` in the root for complete project documentation
+- See `/0_context/` for extensive trickle-down documentation system
 
 
