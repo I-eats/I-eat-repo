@@ -35,7 +35,7 @@ body {
   align-items: center;
   padding: clamp(20px, 5vw, 60px);
   width: 100%;
-  min-height: 50vh;
+  height: 50vh;
   position: relative;
   z-index: 1;
   background-color: var(--primary-blue);
@@ -60,11 +60,12 @@ body {
   justify-content: center;
   gap: clamp(15px, 3vw, 30px);
   width: 100%;
-  min-height: 50vh;
+  height: 50vh;
   box-sizing: border-box;
   position: relative;
   z-index: 2;
   margin-top: -2px;
+  overflow-y: auto;
 }
 
 .email-portion {
@@ -272,24 +273,14 @@ body {
   .sign-in-button {
     max-width: 100%;
   }
-  
-  .main-content {
-    min-height: 50vh;
-  }
-  
-  .bottom-content {
-    min-height: 50vh;
-  }
 }
 
 @media (max-width: 480px) {
   .main-content {
-    min-height: 50vh;
     padding: 15px;
   }
   
   .bottom-content {
-    min-height: 50vh;
     padding: 30px 15px;
   }
   
@@ -298,26 +289,25 @@ body {
   }
 }
 
-/* Ensure content fits on wider screens */
+/* Adjust padding for wider screens to prevent excessive growth */
 @media (min-width: 1200px) {
   .bottom-content {
-    min-height: auto;
-    padding: clamp(40px, 8vw, 80px) clamp(20px, 5vw, 60px);
+    padding: clamp(30px, 4vw, 50px) clamp(20px, 3vw, 40px);
   }
   
   .main-content {
-    min-height: auto;
+    padding: clamp(20px, 3vw, 40px);
   }
 }
 
 /* Landscape orientation adjustments for website */
 @media (max-height: 600px) and (orientation: landscape) {
   .main-content {
-    min-height: 30vh;
+    height: 30vh;
   }
   
   .bottom-content {
-    min-height: 70vh;
+    height: 70vh;
     padding: 20px clamp(15px, 4vw, 40px);
   }
   
