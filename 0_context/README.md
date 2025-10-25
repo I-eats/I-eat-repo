@@ -30,6 +30,8 @@
 - **Mobile**: React Native (planned)
 - **Deployment**: Vercel (web), App Store/Google Play (mobile)
 
+> **⚠️ Note on Firebase References:** Historical documentation in this repository contains references to Firebase. These are **archived/outdated**. The project currently uses **Supabase** for all backend services. Firebase documentation should be considered historical context only.
+
 ## 📁 **Directory Structure**
 
 ### **trickle_down_0_universal/**
