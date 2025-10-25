@@ -35,6 +35,7 @@ function App() {
 
     try {
       const fullEmail = `${email}@byui.edu`
+      console.log('Attempting authentication with email:', fullEmail)
       
       // Try to sign in first
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ 
@@ -43,10 +44,12 @@ function App() {
       })
       
       if (signInData && !signInError) {
-        // Sign in successful
+        console.log('Sign in successful:', signInData)
         setIsAuthenticated(signInData)
         return
       }
+
+      console.log('Sign in failed, trying to create account. Error:', signInError)
 
       // If sign in failed, try to create account
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ 
@@ -54,13 +57,29 @@ function App() {
         password: password 
       })
 
+      console.log('Sign up result:', { signUpData, signUpError })
+
       if (signUpError) {
         console.log("error creating account: ", signUpError)
-        setError('Error creating account. Please try again.')
+        if (signUpError.message.includes('email_address_invalid')) {
+          setError('Email domain not allowed. Please contact administrator.')
+        } else if (signUpError.message.includes('email_not_confirmed')) {
+          setError('Please check your email to confirm your account.')
+        } else {
+          setError(`Error creating account: ${signUpError.message}`)
+        }
         return
       }
 
       if (signUpData.user) {
+        console.log('Account created successfully, signing in...')
+        
+        // Check if email confirmation is required
+        if (signUpData.user.email_confirmed_at === null) {
+          setError('Account created! Please check your email to confirm your account, then try signing in again.')
+          return
+        }
+        
         // Account created successfully, sign in
         const { data: finalSignInData, error: finalSignInError } = await supabase.auth.signInWithPassword({ 
           email: fullEmail, 
@@ -68,10 +87,16 @@ function App() {
         })
         
         if (finalSignInError) {
-          setError('Account created but sign in failed. Please try again.')
+          console.log('Final sign in error:', finalSignInError)
+          if (finalSignInError.message.includes('Email not confirmed')) {
+            setError('Account created! Please check your email to confirm your account, then try signing in again.')
+          } else {
+            setError('Account created but sign in failed. Please try again.')
+          }
           return
         }
         
+        console.log('Final sign in successful:', finalSignInData)
         setIsAuthenticated(finalSignInData)
       } else {
         setError('Account creation failed. Please try again.')
