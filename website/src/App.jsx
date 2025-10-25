@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import AuthGuard from './components/auth/AuthGuard'
 import './App.css'
 
 // Create Supabase client
@@ -146,18 +147,7 @@ function App() {
   }
 
   if (isAuthenticated) {
-    return (
-      <div className="app-container">
-        <div className="dashboard">
-          <h1>Welcome to I-Eat!</h1>
-          <p>Hello {isAuthenticated.user?.email}!</p>
-          <p>🎉 You're successfully logged in!</p>
-          <button onClick={handleSignOut} className="sign-out-btn">
-            Sign Out
-          </button>
-        </div>
-      </div>
-    )
+    return <AuthGuard />
   }
 
   return (
