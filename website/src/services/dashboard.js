@@ -65,21 +65,32 @@ export const dashboardService = {
 
   // Join a class as a student
   async joinClass(classId) {
+    console.log('AHSLDHAKHSDKASJDHAKHSDH')
     try {
+      console.log('before the thing')
       const user = await supabase.auth.getUser()
+      console.log('user', user)
+      console.log('user.data', user.data)
+      console.log('user.data.user', user.data.user)
       if (!user.data.user) throw new Error('No user found')
 
+      console.log('STEP 1')
       // First, get the class to verify it exists
       const { data: classData, error: classError } = await supabase
         .from('classes')
         .select('*')
         .eq('id', classId)
         .single()
+        
+      console.log('STEP 1')
 
       if (classError) throw new Error('Class not found')
+      
+        console.log('STEP 1')
 
       // Generate a unique student ID
       const studentId = 'STU' + Math.random().toString().substr(2, 6)
+      console.log('STEP 1')
 
       // Create student record
       const { data: student, error: studentError } = await supabase
@@ -88,11 +99,11 @@ export const dashboardService = {
           id: studentId,
           user_id: user.data.user.id,
           class_id: classId,
-          points: 0,
-          created_at: new Date().toISOString()
+          user_credit_id: 
         })
         .select()
         .single()
+        console.log('STEP 1')
 
       if (studentError) throw studentError
 
