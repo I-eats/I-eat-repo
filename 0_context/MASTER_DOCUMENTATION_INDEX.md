@@ -15,6 +15,8 @@ This master index provides a comprehensive overview of all documentation organiz
 
 **🔧 CURSOR TERMINAL ISSUES DOCUMENTED**: Critical terminal output handling issues in Cursor IDE that affect all AI agents have been comprehensively documented with community-verified solutions from Cursor forums. See `trickle_down_0_universal/0_instruction_docs/cursor_terminal_issues.md` for complete analysis, workarounds, and best practices.
 
+**📝 AI AGENT DOCUMENTATION RULE**: Universal rule requiring all AI agents to create, update, and maintain comprehensive documentation for every single AI turn in every session. Includes mandatory git commit requirements. See `trickle_down_0_universal/0_instruction_docs/ai_agent_documentation_rule.md` for complete requirements and `trickle_down_0_universal/0_instruction_docs/git_commit_rule.md` for git commit standards.
+
 **🧪 TESTING SYSTEM FIXED**: User story testing system has been completely overhauled with server connectivity verification to eliminate false negatives. See `TESTING_SYSTEM_FIXED_JAN_24_2025.md` for comprehensive improvements and usage instructions.
 
 **🔧 MEDIUM PRIORITY ITEMS COMPLETED**: URL routing fixes and comprehensive template creation completed. All templates now exist with consistent design and navigation patterns. See `MEDIUM_PRIORITY_ITEMS_COMPLETED_JAN_24_2025.md` for detailed accomplishments.
