@@ -118,10 +118,13 @@
   color: #999;
 }
 
-.form-group span {
+.email-suffix {
   color: #666;
   font-size: 1rem;
   white-space: nowrap;
+  padding-left: 0.5rem;
+  border-left: 1px solid #ddd;
+  margin-left: 0.5rem;
 }
 
 /* Checkbox styling */
@@ -151,54 +154,40 @@
   text-decoration: underline;
 }
 
-/* Auth mode buttons */
-.auth-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.auth-button {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: 2px solid #0066cc;
-  border-radius: 8px;
-  background: transparent;
-  color: #0066cc;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
+/* Auth mode toggle */
+.auth-mode-toggle {
   text-align: center;
-  transition: all 0.2s ease;
+  margin: 1rem 0;
 }
 
-.auth-button.primary {
-  background: #0066cc;
-  color: white;
+.auth-mode-toggle p {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
-.auth-button.secondary {
-  background: transparent;
+.toggle-link {
+  background: none;
+  border: none;
   color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+  padding: 0;
+  margin: 0;
 }
 
-.auth-button:hover:not(.disabled) {
-  background: #0066cc;
-  color: white;
+.toggle-link:hover {
+  color: #0052a3;
 }
 
-.auth-button.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Create button */
-.create-button {
+/* Submit button */
+.submit-button {
   width: 100%;
   padding: 1rem 2rem;
-  background: #ccc;
-  color: #666;
+  background: #0066cc;
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -207,16 +196,19 @@
   font-family: inherit;
   text-align: center;
   margin-top: 1rem;
+  transition: all 0.2s ease;
 }
 
-.create-button:hover:not(:disabled) {
-  background: #bbb;
-  color: #555;
+.submit-button:hover:not(:disabled) {
+  background: #0052a3;
+  transform: translateY(-1px);
 }
 
-.create-button:disabled {
-  opacity: 0.6;
+.submit-button:disabled {
+  background: #ccc;
+  color: #666;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* Error message styling */

@@ -264,7 +264,7 @@ function AppContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <span>@byui.edu</span>
+            <span className="email-suffix">@byui.edu</span>
           </div>
           
           <div className="form-group">
@@ -304,35 +304,44 @@ function AppContent() {
             </>
           )}
 
-          <div className="auth-buttons">
-            <button
-              className={`auth-button ${authMode === 'signin' ? 'primary' : 'secondary'}`}
-              onClick={() => {
-                setAuthMode('signin')
-                setError('')
-              }}
-              disabled={isLoading}
-            >
-              Sign In
-            </button>
-            <button
-              className={`auth-button ${authMode === 'signup' ? 'primary' : 'secondary'}`}
-              onClick={() => {
-                setAuthMode('signup')
-                setError('')
-              }}
-              disabled={isLoading}
-            >
-              Sign Up
-            </button>
+          <div className="auth-mode-toggle">
+            {authMode === 'signin' ? (
+              <p>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  className="toggle-link"
+                  onClick={() => {
+                    setAuthMode('signup')
+                    setError('')
+                  }}
+                >
+                  Sign Up
+                </button>
+              </p>
+            ) : (
+              <p>
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  className="toggle-link"
+                  onClick={() => {
+                    setAuthMode('signin')
+                    setError('')
+                  }}
+                >
+                  Sign In
+                </button>
+              </p>
+            )}
           </div>
 
           <button
-            className={`create-button ${disabled ? 'disabled' : ''}`}
+            className={`submit-button ${disabled ? 'disabled' : ''}`}
             onClick={handleAuthentication}
             disabled={disabled || isLoading}
           >
-            {isLoading ? (authMode === 'signin' ? 'Signing In...' : 'Creating Account...') : 'create'}
+            {isLoading ? (authMode === 'signin' ? 'Signing In...' : 'Creating Account...') : (authMode === 'signin' ? 'Sign In' : 'Sign Up')}
           </button>
         </div>
 
