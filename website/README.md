@@ -51,6 +51,29 @@ This project uses **Supabase** for all backend services:
 - Database
 - Real-time subscriptions
 
+### Setup Instructions
+
+1. **Create a Supabase project** at [supabase.com](https://supabase.com)
+2. **Get your project credentials** from the Supabase dashboard
+3. **Create environment file**:
+   ```bash
+   # Create .env.local file in the website/ directory
+   touch .env.local
+   ```
+4. **Add your Supabase credentials** to `.env.local`:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url_here
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   ```
+5. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+6. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+
 > **Note:** Historical documentation may reference Firebase. This is outdated - the project uses Supabase.
 
 ## Documentation
