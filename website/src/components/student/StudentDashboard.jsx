@@ -112,7 +112,7 @@ const StudentDashboard = () => {
         </div>
         
         <div className="points-display">
-          <h3>Your Points: {studentData.points_balance || 0}</h3>
+          <h3>Your Points: {studentData.user_credit?.points || 0}</h3>
         </div>
       </div>
 

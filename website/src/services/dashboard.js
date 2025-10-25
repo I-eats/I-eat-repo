@@ -52,7 +52,7 @@ export const dashboardService = {
     try {
       const { data: students, error } = await supabase
         .from('students')
-        .select('*')
+        .select('*, user_credit(points)')
         .eq('class_id', classId)
 
       if (error) throw error
@@ -113,6 +113,7 @@ export const dashboardService = {
         .from('students')
         .select(`
           *,
+          user_credit(points),
           classes (
             name,
             code,

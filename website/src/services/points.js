@@ -12,10 +12,10 @@ export const pointsService = {
         throw new Error('User not authenticated')
       }
       
-      // First, get the current student data
+      // First, get the current student data with user_credit
       const { data: student, error: studentError } = await supabase
         .from('students')
-        .select('*')
+        .select('*, user_credit(points)')
         .eq('id', studentId)
         .single()
 
@@ -28,26 +28,30 @@ export const pointsService = {
         throw new Error('Student not found')
       }
 
+      if (!student.user_credit_id) {
+        throw new Error('Student has no user_credit record')
+      }
+
       console.log('Current student data:', student)
 
-      // Calculate new points - use points_balance field
-      const currentPoints = student.points_balance || 0
+      // Calculate new points - use user_credit.points field
+      const currentPoints = student.user_credit?.points || 0
       const newPoints = type === 'credit' ? currentPoints + points : currentPoints - points
 
-      // Update student points
-      const { data: updatedStudent, error: updateError } = await supabase
-        .from('students')
-        .update({ points_balance: newPoints })
-        .eq('id', studentId)
+      // Update user_credit points
+      const { data: updatedCredit, error: updateError } = await supabase
+        .from('user_credit')
+        .update({ points: newPoints })
+        .eq('user_credit_id', student.user_credit_id)
         .select()
         .single()
 
       if (updateError) {
-        console.error('Error updating student points:', updateError)
-        throw new Error(`Failed to update student points: ${updateError.message}`)
+        console.error('Error updating user credit points:', updateError)
+        throw new Error(`Failed to update user credit points: ${updateError.message}`)
       }
 
-      console.log('Updated student data:', updatedStudent)
+      console.log('Updated user credit data:', updatedCredit)
 
       // Create a transaction record
       const { data: transaction, error: transactionError } = await supabase
@@ -70,7 +74,7 @@ export const pointsService = {
 
       return {
         success: true,
-        student: updatedStudent,
+        student: { ...student, user_credit: updatedCredit },
         transaction: transaction
       }
 
@@ -85,7 +89,7 @@ export const pointsService = {
     try {
       const { data: student, error } = await supabase
         .from('students')
-        .select('points_balance')
+        .select('user_credit(points)')
         .eq('id', studentId)
         .single()
 
@@ -94,7 +98,7 @@ export const pointsService = {
         throw new Error(`Failed to fetch student points: ${error.message}`)
       }
 
-      return student?.points_balance || 0
+      return student?.user_credit?.points || 0
     } catch (error) {
       console.error('Error in getStudentPoints:', error)
       throw error

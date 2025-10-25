@@ -83,6 +83,17 @@ const TeacherDashboard = () => {
       // Create a test student directly
       const testStudentId = `STU${Date.now().toString().slice(-6)}`
       
+      // Create user_credit record first
+      const { data: newCredit, error: creditError } = await supabase
+        .from('user_credit')
+        .insert({
+          points: 0
+        })
+        .select()
+        .single()
+
+      if (creditError) throw creditError
+
       // Add the test student to the class
       const { data: newStudent, error: addError } = await supabase
         .from('students')
@@ -90,7 +101,7 @@ const TeacherDashboard = () => {
           user_id: authUser.id, // Use current teacher's ID for now
           class_id: classData.id,
           student_id: testStudentId,
-          points_balance: 0
+          user_credit_id: newCredit.user_credit_id
         })
         .select()
       
@@ -174,7 +185,7 @@ const TeacherDashboard = () => {
           user_id: student.user_id,
           student_id: student.student_id,
           name: fallbackName,
-          points_balance: student.points_balance ?? 0,
+          points_balance: student.user_credit?.points ?? 0,
           email: ''
         }
       })

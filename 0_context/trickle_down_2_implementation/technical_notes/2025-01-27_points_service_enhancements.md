@@ -118,12 +118,12 @@ CREATE TABLE point_transactions (
 async getStudentPoints(studentId) {
   const { data: student, error } = await supabase
     .from('students')
-    .select('points_balance')
+    .select('user_credit_id(points)')
     .eq('id', studentId)
     .single()
   
   if (error) throw error
-  return student?.points_balance || 0
+  return student?.user_credit_id?.points || 0
 }
 ```
 
