@@ -1,42 +1,140 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* BYU-Idaho Brand Colors */
+:root {
+  --brand-blue: #006EB6;
+  --dark-blue: #214491;
+  --medium-blue: #4F9ACF;
+  --light-blue: #A0D4ED;
+  --gray: #949598;
+  --black: #000000;
+  --white: #FFFFFF;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--light-blue) 0%, var(--brand-blue) 100%);
+  padding: 1rem;
+}
+
+.auth-card {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-title {
+  color: var(--dark-blue);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.auth-subtitle {
+  color: var(--gray);
+  font-size: 1rem;
+  margin: 0 0 2rem 0;
+  text-align: center;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  color: var(--dark-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  padding: 0.875rem 1rem;
+  border: 2px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px rgba(0, 110, 182, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #AAAAAA;
+}
+
+.submit-btn {
+  background: var(--brand-blue);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.submit-btn:hover {
+  background: var(--dark-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 110, 182, 0.3);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+.auth-toggle {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.auth-toggle p {
+  color: var(--gray);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: var(--brand-blue);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.toggle-btn:hover {
+  color: var(--dark-blue);
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 2rem 1.5rem;
   }
-  to {
-    transform: rotate(360deg);
+
+  .auth-title {
+    font-size: 1.75rem;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

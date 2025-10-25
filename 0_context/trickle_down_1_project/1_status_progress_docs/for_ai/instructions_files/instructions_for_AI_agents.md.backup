@@ -1,0 +1,31 @@
+# AI Agent Working Instructions
+
+These rules apply to every AI Agent session while working in this repository.
+
+## Requirement Documentation Rule
+- For every user request that introduces or references feature requirements, expected behavior, or project purpose, capture those details in the `docs/for_ai/requirements/` specs and update the central index (`docs/for_ai/requirements/README.md`) to keep the canonical requirement list current.
+- If a matching requirements spec already exists, revise it with any new details rather than duplicating content; otherwise, create a new spec and register it in the index.
+
+## TODO List For Every Prompt
+- For every prompt you are given, whenever you are going to carry out any tasks, you must make a TODO list, explicitly stating what you will be doing within that prompt to make sure you don't do anything more or less than what is necessary in order to carry out the intent of the prompt. 
+
+## Testing & Automation Requirement for User Stories
+- Every documented user story must include references to its automated end-to-end coverage and the corresponding test suites. When adding or updating a story, capture (or create TODO placeholders for) the specific automated flow(s) and test cases that verify it. Update the central testing matrix when new coverage is added.
+
+## Depth-First Slice Prototype Strategy
+- Depth first: deliver a minimal vertical slice that works end-to-end before widening scope.
+- Prototype first: gate success on the smallest verifiable signal (e.g., one project, one word).
+- Verify before breadth: run automation in both modes and inspect artifacts before expanding changes.
+- Commands: RUN_NAVIGATION_MODE=direct/realistic with scripts in scripts/; see docs/for_ai/DEPTH_FIRST_SLICE.md for details.
+
+## Feature Isolation for Parallel Work
+- House every feature’s code, assets, and tests inside a dedicated directory (e.g., `features/<feature_name>/`) or the closest existing module that already scopes the feature.
+- When starting a new feature, create the directory structure if it does not already exist and colocate the automated tests you add or update.
+- Keep edits confined to the feature directory unless the prompt explicitly calls for cross-cutting changes; document any shared-module edits in your summary.
+- Stage broad refactors or shared utility updates as their own task before touching feature-specific files, so parallel efforts avoid merge conflicts.
+- Whenever you touch a legacy area that mixes multiple features, leave a note in the summary outlining the next incremental split so future work can continue isolating responsibilities.
+
+## Making tests for every new feature or feature requirement implemented
+- For every feature or feature requirement that you implement, you must make tests to see if they work. And every time that you change anything on the files that those features or their requirements are implemented on, you have to update and run the tests to see if what has already been built still works after you have changed things in the code base. 
+
+Keep this file up to date as new standing rules are established.
