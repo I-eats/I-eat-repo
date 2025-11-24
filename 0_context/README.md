@@ -74,6 +74,13 @@ Component-specific documentation
 - `1_status_progress_docs/` - Component development status
 - `2_archive_docs/` - Completed component implementations
 
+## 📦 Integrated Project Imports
+
+- Project-layer trickle-down docs are consolidated under `integrated_from_projects/I-eat-repo/...` inside each primary numbered directory.
+- Use the `trickle_down_<level>/0_instruction_docs/integrated_from_projects/` paths to reach constitutions, environment setup, and tooling references.
+- Run `/init` at the beginning of a session so Cursor reloads the flattened layout.
+- Adjust any personal automations or notes that pointed at the deprecated nested `trickle-down-*` folders.
+
 ## 🚀 **Quick Start for AI Agents**
 
 1. **Read Terminal Fix**: `TERMINAL_HANGING_FIX.md`
